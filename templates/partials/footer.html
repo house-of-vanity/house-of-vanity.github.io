@@ -6,9 +6,10 @@
         </a>
     {% endfor %}
   </div>
-  <div class="footer-info">
+  <div class="footer-info">ver. {{ config.extra.version }}
 	  {{ now() | date(format="%Y") }} © {{ config.extra.copyright }} |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
       href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
   </div>
 </footer>
 

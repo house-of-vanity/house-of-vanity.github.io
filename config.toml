@@ -24,6 +24,8 @@ highlight_theme = "demain"
 
 [extra]
 
+version = "2.1"
+
 # control dark mode: auto | dark | toggle
 mode = "toggle"
 
