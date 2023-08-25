@@ -1,31 +1,18 @@
-name: Zola on GitHub Pages
-
-on:
-  push:
-    branches: ["zola"]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-defaults:
-  run:
-    shell: bash
-
+# On every push this script is executed
+on: push
+name: Build and deploy GH Pages
 jobs:
   build:
-    name: Publish site
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/zola'
     steps:
-    - name: Checkout zola branch
-      uses: actions/checkout@v3.0.0
-    - name: Build and deploy
-      uses: shalzz/zola-deploy-action@v0.17.2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PAGES_BRANCH: gh-pages
-
+      - name: checkout
+        uses: actions/checkout@v3.0.0
+      - name: build_and_deploy
+        uses: shalzz/zola-deploy-action@v0.17.2
+        env:
+          PAGES_BRANCH: gh-pages
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #  deploy:
 #    environment:
 #      name: github-pages
