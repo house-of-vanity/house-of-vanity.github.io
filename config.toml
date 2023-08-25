@@ -26,6 +26,8 @@ highlight_theme = "demain"
 
 version = "2.5"
 
+tag = "LOCAL"
+
 # control dark mode: auto | dark | toggle
 mode = "toggle"
 

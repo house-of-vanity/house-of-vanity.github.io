@@ -6,9 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/zola'
     steps:
-      - name: checkout
+      - name: Checkout
         uses: actions/checkout@v3.0.0
-      - name: build_and_deploy
+      - name: Set commit id
+        run: sed -e "s/tag\ =.*/tag = \"${REV}\"/" -i config.toml
+      - name: Build and push to gh-pages branch
         uses: shalzz/zola-deploy-action@v0.17.2
         env:
           PAGES_BRANCH: gh-pages
