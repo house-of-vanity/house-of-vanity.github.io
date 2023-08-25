@@ -15,7 +15,7 @@ Site Reliability Engineer (SRE) at Criteo
 Limassol, Cyprus 🇨🇾
 ***
 
-![Me](https://me.hexor.ru/static/imgs/photo.jpeg "Me")
+![Me](/imgs/photo.jpeg "Me")
 ### Contacts
 * [https://github.com/house-of-vanity](https://github.com/house-of-vanity)
 * [Telegram @ultradesu](tg:@ultradesu)
