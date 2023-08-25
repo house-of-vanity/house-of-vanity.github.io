@@ -1,18 +1,55 @@
-name: Zola on GitHub Pages
+#name: Zola on GitHub Pages
 
-on: 
- push:
-  branches:
-   - zola
+#on:
+#  push:
+#    branches: ["zola"]
 
+#permissions:
+#  contents: read
+#  pages: write
+#  id-token: write
+
+#defaults:
+#  run:
+#    shell: bash
+
+#jobs:
+#  build:
+#    name: Publish site
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Checkout zola branch
+#      uses: actions/checkout@v3.0.0
+#    - name: Build and deploy
+#      uses: shalzz/zola-deploy-action@v0.17.2
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+#  deploy:
+#    environment:
+#      name: github-pages
+#      url: btwiusearch.net
+#    runs-on: ubuntu-latest
+#    needs: build
+#    steps:
+#      - name: Deploy to GitHub Pages
+#        id: deployment
+#        uses: actions/deploy-pages@v2
+#
+# On every push this script is executed
+on: push
+name: Build and deploy GH Pages
 jobs:
   build:
-    name: Publish site
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/zola'
     steps:
-    - name: Checkout zola branch
-      uses: actions/checkout@v3.0.0
-    - name: Build and deploy
-      uses: shalzz/zola-deploy-action@v0.17.2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: checkout
+        uses: actions/checkout@v3.0.0
+      - name: build_and_deploy
+        uses: shalzz/zola-deploy-action@v0.17.2
+        env:
+          # Target branch
+          PAGES_BRANCH: gh-pages
+          # Or if publishing to the same repo, use the automatic token
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
