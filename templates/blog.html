@@ -1,0 +1,6 @@
+{% extends "index.html" %}
+
+{% block main_content %}
+    {% set section = get_section(path="blog/_index.md") %}
+    {{ post_macros::list_title(blog=section.blog) }}
+{% endblock main_content %}
