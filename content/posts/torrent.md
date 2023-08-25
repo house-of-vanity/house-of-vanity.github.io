@@ -49,7 +49,7 @@ ip netns exec torrent sudo -u ${USER} qbittorrent-nox
 END
 )
 
-sudo -E -E bash -c 'cat > /usr/bin/torrent_ns << EOF
+sudo -E bash -c 'cat > /usr/bin/torrent_ns << EOF
 ${SCRIPT}
 EOF
 '
