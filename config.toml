@@ -24,7 +24,7 @@ highlight_theme = "demain"
 
 [extra]
 
-version = "2.3"
+version = "2.4"
 
 # control dark mode: auto | dark | toggle
 mode = "toggle"
@@ -37,6 +37,12 @@ favicon = "/icon/favicon.png"
 copyright = "ultradesu"
 
 ga = "G-ZQB83ET6VX"
+
+meta = [
+    {property = "og:title", content = "BTWIUSEARCH.net"},
+    {property = "og:image", content = "imgs/webview.png"},
+    {property = "og:description", content = "Self-hosting adventures"},
+]
 
 [extra.translations]
 languages = [{name = "en", url = "/"}]
