@@ -66,3 +66,12 @@ Limassol, Cyprus 🇨🇾
 ### IPONWEB - Operations Engineer
 **Nov 2016 - Sep 2020** Russia, Moscow
 > IPONWEB is a pioneer and global leader in the engineering of advanced programmatic, RTB, and media trading platforms across digital, TV, DOOH, and audio. Founded in the UK, IPONWEB has nearly 400 employees spread across the US, UK, Germany, Japan, Asia and Russia.
+* Cassandra
+* Kubernetes
+* Google cloud platform
+* AWS
+* Terraform
+* Puppet
+* Python
+* Linux
+***
