@@ -62,6 +62,7 @@ menus = [
     { name = "All posts", url = "/posts", weight = 2 },
     { name = "About", url = "/about", weight = 3 },
     { name = "Tags", url = "/tags", weight = 4 },
+    { name = "Private Arch Linux repo", url = "/arch_repo/", weight = 3 },
 ]
 
 # config social icon info in the footer
