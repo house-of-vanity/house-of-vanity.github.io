@@ -10,8 +10,9 @@ tags = ["linux", "tools", "selfhosting"]
 author = { name = "@ultradesu", social= "https://github.com/house-of-vanity" }
 +++
 
-First of all I faced an issue with outline vpn server which expose prom metrics on `127.0.0.1` with no way to change it. So stunnel4 is a solution. Basically it wirks as TLS proxy listen on configured port and proxy traffic to another.
-[Server1(stunnel server)] <==> [Server2(stunnel client)]
+First of all, I encountered an issue with the Outline VPN server, which exposes Prometheus metrics on 127.0.0.1 with no option to change it. As a solution, I used stunnel4. Essentially, it works as a TLS proxy, listening on a configured port and forwarding traffic to another.
+
+[Server1 (stunnel server)] <==> [Server2 (stunnel client)]
 
 ## Server side
 Install stunnel and create configs:
