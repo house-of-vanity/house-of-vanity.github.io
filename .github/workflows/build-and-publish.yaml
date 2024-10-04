@@ -8,8 +8,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3.0.0
+
+      - name: Get short SHA
+        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+
       - name: Set commit id
-        run: sed -e "s/tag\ =.*/tag = \"${{ github.sha.substr(0,7) }}\"/" -i config.toml
+        run: sed -e "s/tag\ =.*/tag = \"${{ env.SHORT_SHA }}\"/" -i config.toml
+        
       - name: Build and push to gh-pages branch
         uses: shalzz/zola-deploy-action@v0.17.2
         env:
