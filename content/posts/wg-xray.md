@@ -26,7 +26,7 @@ sudo bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-re
 
 First, generate the necessary keys and IDs:
 
-```shell
+```sh
 # Generate X25519 keys using Xray's built-in command
 _x25519=$(xray x25519)
 PRIVATE_KEY=$(echo "$_x25519" | awk -F': ' '/Private key/{print $2}')
@@ -47,7 +47,8 @@ PORT=8443
 
 Create the server configuration file `server.json`:
 
-```shell
+```sh
+# /usr/local/etc/xray/config.json
 cat > server.json <<EOF
 {
     "log": {
@@ -101,7 +102,8 @@ This configuration sets up an inbound VLESS listener over HTTP/2 with Reality se
 
 Create the client configuration file `client.json`:
 
-```shell
+```sh
+# /usr/local/etc/xray/config.json
 cat > client.json <<EOF
 {
     "log": {

@@ -9,7 +9,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.0.0
       - name: Set commit id
-        run: sed -e "s/tag\ =.*/tag = \"${{ github.sha }}\"/" -i config.toml
+        run: sed -e "s/tag\ =.*/tag = \"${{ github.sha.substr(0,7) }}\"/" -i config.toml
       - name: Build and push to gh-pages branch
         uses: shalzz/zola-deploy-action@v0.17.2
         env:
