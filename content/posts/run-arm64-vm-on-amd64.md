@@ -1,3 +1,15 @@
++++
+title = "Run arm64 VM on amd64"
+date = "2024-10-12"
+description = "Simple way to test arm64 workflow on amd64"
+
+[taxonomies]
+tags = ["linux", "virtualization", "arm64", "qemu"]
+
+[extra]
+author = { name = "@ultradesu", social= "https://github.com/house-of-vanity" }
++++
+
 ## Install QEMU
 
 ```sh
