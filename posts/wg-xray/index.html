@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             WireGuard over Xray VLESS Protocol
+            
+        </title>
+
+        
+            <meta property="og:title" content="WireGuard over Xray VLESS Protocol" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="How to Maintain the WireGuard Network in Censored Countries" />
+        
+    
+
+    
+        
+            <meta name="description" content="How to Maintain the WireGuard Network in Censored Countries" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">WireGuard over Xray VLESS Protocol</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2024-10-04
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <h1 id="setting-up-xray-with-wireguard-over-reality-protocol">Setting Up Xray with WireGuard over Reality Protocol</h1>
+<p>In this guide, we'll walk through the steps to set up Xray-core to proxy WireGuard traffic using the Reality protocol over TCP. This configuration can help bypass network restrictions and enhance privacy.</p>
+<h2 id="installing-xray-core">Installing Xray-core</h2>
+<p>Install the latest beta version of Xray-core with root privileges:</p>
+<pre data-lang="shell" style="background-color:#f9f9f9;color:#111111;" class="language-shell "><code class="language-shell" data-lang="shell"><span>sudo bash -c &quot;$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)&quot; @ install --beta -u root
+</span></code></pre>
+<h2 id="generating-configurations">Generating Configurations</h2>
+<p>First, generate the necessary keys and IDs:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#8e908c;"># Generate X25519 keys using Xray&#39;s built-in command
+</span><span style="color:#c82728;">_x25519</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">$(</span><span style="color:#c82728;">xray</span><span style="color:#4271ae;"> x25519</span><span style="color:#839c00;">)
+</span><span style="color:#c82728;">PRIVATE_KEY</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">$(</span><span style="color:#4271ae;">echo </span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">_x25519</span><span style="color:#839c00;">&quot; </span><span style="color:#3e999f;">| </span><span style="color:#c82728;">awk</span><span style="color:#f07219;"> -F</span><span style="color:#839c00;">&#39;: &#39; &#39;/Private key/{print $2}&#39;)
+</span><span style="color:#c82728;">PUBLIC_KEY</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">$(</span><span style="color:#4271ae;">echo </span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">_x25519</span><span style="color:#839c00;">&quot; </span><span style="color:#3e999f;">| </span><span style="color:#c82728;">awk</span><span style="color:#f07219;"> -F</span><span style="color:#839c00;">&#39;: &#39; &#39;/Public key/{print $2}&#39;)
+</span><span>
+</span><span style="color:#8e908c;"># Generate a unique UUID for the client
+</span><span style="color:#c82728;">CLIENT_UUID</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">$(</span><span style="color:#c82728;">uuidgen</span><span style="color:#839c00;">)
+</span><span>
+</span><span style="color:#8e908c;"># Generate a random short ID
+</span><span style="color:#c82728;">SHORT_IDS</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">$(</span><span style="color:#c82728;">openssl</span><span style="color:#4271ae;"> rand</span><span style="color:#f07219;"> -hex</span><span style="color:#4271ae;"> 8</span><span style="color:#839c00;">)
+</span><span>
+</span><span style="color:#8e908c;"># Define server address and port
+</span><span style="color:#c82728;">SERVER_ADDRESS</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">&quot;k8s.hexor.cy&quot;
+</span><span style="color:#c82728;">PORT</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">8443
+</span></code></pre>
+<h3 id="server-configuration">Server Configuration</h3>
+<p>Create the server configuration file <code>server.json</code>:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#8e908c;"># /usr/local/etc/xray/config.json
+</span><span style="color:#c82728;">cat </span><span style="color:#3e999f;">&gt;</span><span style="color:#4271ae;"> server.json </span><span style="color:#3e999f;">&lt;&lt;</span><span style="color:#8959a8;">EOF
+</span><span style="color:#839c00;">{
+</span><span style="color:#839c00;">    &quot;log&quot;: {
+</span><span style="color:#839c00;">        &quot;loglevel&quot;: &quot;warning&quot;
+</span><span style="color:#839c00;">    },
+</span><span style="color:#839c00;">    &quot;inbounds&quot;: [
+</span><span style="color:#839c00;">        {
+</span><span style="color:#839c00;">            &quot;listen&quot;: &quot;0.0.0.0&quot;,
+</span><span style="color:#839c00;">            &quot;port&quot;: ${</span><span style="color:#c82728;">PORT</span><span style="color:#839c00;">},
+</span><span style="color:#839c00;">            &quot;protocol&quot;: &quot;vless&quot;,
+</span><span style="color:#839c00;">            &quot;settings&quot;: {
+</span><span style="color:#839c00;">                &quot;clients&quot;: [
+</span><span style="color:#839c00;">                    {
+</span><span style="color:#839c00;">                        &quot;id&quot;: &quot;${</span><span style="color:#c82728;">CLIENT_UUID</span><span style="color:#839c00;">}&quot;,
+</span><span style="color:#839c00;">                        &quot;flow&quot;: &quot;&quot;
+</span><span style="color:#839c00;">                    }
+</span><span style="color:#839c00;">                ],
+</span><span style="color:#839c00;">                &quot;decryption&quot;: &quot;none&quot;
+</span><span style="color:#839c00;">            },
+</span><span style="color:#839c00;">            &quot;streamSettings&quot;: {
+</span><span style="color:#839c00;">                &quot;network&quot;: &quot;tcp&quot;,
+</span><span style="color:#839c00;">                &quot;security&quot;: &quot;reality&quot;,
+</span><span style="color:#839c00;">                &quot;realitySettings&quot;: {
+</span><span style="color:#839c00;">                    &quot;show&quot;: false,
+</span><span style="color:#839c00;">                    &quot;dest&quot;: &quot;www.google.com:443&quot;,
+</span><span style="color:#839c00;">                    &quot;xver&quot;: 0,
+</span><span style="color:#839c00;">                    &quot;serverNames&quot;: [
+</span><span style="color:#839c00;">                        &quot;www.google.com&quot;
+</span><span style="color:#839c00;">                    ],
+</span><span style="color:#839c00;">                    &quot;privateKey&quot;: &quot;${</span><span style="color:#c82728;">PRIVATE_KEY</span><span style="color:#839c00;">}&quot;,
+</span><span style="color:#839c00;">                    &quot;shortIds&quot;: [
+</span><span style="color:#839c00;">                        &quot;${</span><span style="color:#c82728;">SHORT_IDS</span><span style="color:#839c00;">}&quot;
+</span><span style="color:#839c00;">                    ]
+</span><span style="color:#839c00;">                }
+</span><span style="color:#839c00;">            }
+</span><span style="color:#839c00;">        }
+</span><span style="color:#839c00;">    ],
+</span><span style="color:#839c00;">    &quot;outbounds&quot;: [
+</span><span style="color:#839c00;">        {
+</span><span style="color:#839c00;">            &quot;protocol&quot;: &quot;freedom&quot;,
+</span><span style="color:#839c00;">            &quot;tag&quot;: &quot;direct&quot;
+</span><span style="color:#839c00;">        }
+</span><span style="color:#839c00;">    ]
+</span><span style="color:#839c00;">}
+</span><span style="color:#8959a8;">EOF
+</span></code></pre>
+<p>This configuration sets up an inbound VLESS listener over TCP with Reality security, using the generated private key and short IDs.</p>
+<h3 id="client-configuration">Client Configuration</h3>
+<p>Create the client configuration file <code>client.json</code>:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#8e908c;"># /usr/local/etc/xray/config.json
+</span><span style="color:#c82728;">cat </span><span style="color:#3e999f;">&gt;</span><span style="color:#4271ae;"> client.json </span><span style="color:#3e999f;">&lt;&lt;</span><span style="color:#8959a8;">EOF
+</span><span style="color:#839c00;">{
+</span><span style="color:#839c00;">    &quot;log&quot;: {
+</span><span style="color:#839c00;">        &quot;loglevel&quot;: &quot;warning&quot;
+</span><span style="color:#839c00;">    },
+</span><span style="color:#839c00;">    &quot;inbounds&quot;: [
+</span><span style="color:#839c00;">        {
+</span><span style="color:#839c00;">            &quot;tag&quot;: &quot;wireguard&quot;,
+</span><span style="color:#839c00;">            &quot;port&quot;: 6666,
+</span><span style="color:#839c00;">            &quot;protocol&quot;: &quot;dokodemo-door&quot;,
+</span><span style="color:#839c00;">            &quot;settings&quot;: {
+</span><span style="color:#839c00;">                &quot;address&quot;: &quot;127.0.0.1&quot;,
+</span><span style="color:#839c00;">                &quot;port&quot;: 6666,
+</span><span style="color:#839c00;">                &quot;network&quot;: &quot;udp&quot;
+</span><span style="color:#839c00;">            }
+</span><span style="color:#839c00;">        }
+</span><span style="color:#839c00;">    ],
+</span><span style="color:#839c00;">    &quot;outbounds&quot;: [
+</span><span style="color:#839c00;">        {
+</span><span style="color:#839c00;">            &quot;protocol&quot;: &quot;vless&quot;,
+</span><span style="color:#839c00;">            &quot;settings&quot;: {
+</span><span style="color:#839c00;">                &quot;vnext&quot;: [
+</span><span style="color:#839c00;">                    {
+</span><span style="color:#839c00;">                        &quot;address&quot;: &quot;${</span><span style="color:#c82728;">SERVER_ADDRESS</span><span style="color:#839c00;">}&quot;,
+</span><span style="color:#839c00;">                        &quot;port&quot;: ${</span><span style="color:#c82728;">PORT</span><span style="color:#839c00;">},
+</span><span style="color:#839c00;">                        &quot;users&quot;: [
+</span><span style="color:#839c00;">                            {
+</span><span style="color:#839c00;">                                &quot;id&quot;: &quot;${</span><span style="color:#c82728;">CLIENT_UUID</span><span style="color:#839c00;">}&quot;,
+</span><span style="color:#839c00;">                                &quot;encryption&quot;: &quot;none&quot;,
+</span><span style="color:#839c00;">                                &quot;flow&quot;: &quot;&quot;
+</span><span style="color:#839c00;">                            }
+</span><span style="color:#839c00;">                        ]
+</span><span style="color:#839c00;">                    }
+</span><span style="color:#839c00;">                ]
+</span><span style="color:#839c00;">            },
+</span><span style="color:#839c00;">            &quot;streamSettings&quot;: {
+</span><span style="color:#839c00;">                &quot;network&quot;: &quot;tcp&quot;,
+</span><span style="color:#839c00;">                &quot;security&quot;: &quot;reality&quot;,
+</span><span style="color:#839c00;">                &quot;realitySettings&quot;: {
+</span><span style="color:#839c00;">                    &quot;show&quot;: false,
+</span><span style="color:#839c00;">                    &quot;fingerprint&quot;: &quot;chrome&quot;,
+</span><span style="color:#839c00;">                    &quot;serverName&quot;: &quot;www.google.com&quot;,
+</span><span style="color:#839c00;">                    &quot;publicKey&quot;: &quot;${</span><span style="color:#c82728;">PUBLIC_KEY</span><span style="color:#839c00;">}&quot;,
+</span><span style="color:#839c00;">                    &quot;shortId&quot;: &quot;${</span><span style="color:#c82728;">SHORT_IDS</span><span style="color:#839c00;">}&quot;,
+</span><span style="color:#839c00;">                    &quot;spiderX&quot;: &quot;&quot;
+</span><span style="color:#839c00;">                }
+</span><span style="color:#839c00;">            },
+</span><span style="color:#839c00;">            &quot;tag&quot;: &quot;proxy&quot;
+</span><span style="color:#839c00;">        }
+</span><span style="color:#839c00;">    ]
+</span><span style="color:#839c00;">}
+</span><span style="color:#8959a8;">EOF
+</span></code></pre>
+<p>This client configuration captures local UDP traffic (from WireGuard) and forwards it to the Xray server using the VLESS protocol with Reality security.</p>
+<h2 id="example-wireguard-setup">Example WireGuard Setup</h2>
+<h3 id="server-configuration-1">Server Configuration</h3>
+<p>Set up WireGuard on the server:</p>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8e908c;"># Server configuration: /etc/wireguard/homenet.conf
+</span><span style="color:#8959a8;">[Interface]
+</span><span style="color:#f07219;">Address </span><span style="color:#3e999f;">= </span><span>10.0.0.1/24
+</span><span style="color:#f07219;">ListenPort </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">6666
+</span><span style="color:#f07219;">PrivateKey </span><span style="color:#3e999f;">= &lt;</span><span>server_private_key</span><span style="color:#3e999f;">&gt;
+</span><span style="color:#f07219;">PostUp </span><span style="color:#3e999f;">=</span><span> iptables </span><span style="color:#3e999f;">-</span><span style="color:#f07219;">A FORWARD </span><span style="color:#3e999f;">-</span><span>i </span><span style="color:#8959a8;">%i </span><span style="color:#3e999f;">-</span><span>o </span><span style="color:#8959a8;">%i </span><span style="color:#3e999f;">-</span><span>j </span><span style="color:#f07219;">ACCEPT
+</span><span style="color:#f07219;">PostDown </span><span style="color:#3e999f;">=</span><span> iptables </span><span style="color:#3e999f;">-</span><span style="color:#f07219;">D FORWARD </span><span style="color:#3e999f;">-</span><span>i </span><span style="color:#8959a8;">%i </span><span style="color:#3e999f;">-</span><span>o </span><span style="color:#8959a8;">%i </span><span style="color:#3e999f;">-</span><span>j </span><span style="color:#f07219;">ACCEPT
+</span><span style="color:#f07219;">SaveConfig </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">false
+</span><span style="color:#f07219;">MTU </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">1300
+</span><span>
+</span><span style="color:#8959a8;">[Peer]
+</span><span style="color:#f07219;">PublicKey </span><span style="color:#3e999f;">= &lt;</span><span>peer_public_key</span><span style="color:#3e999f;">&gt;
+</span><span style="color:#f07219;">AllowedIPs </span><span style="color:#3e999f;">= </span><span>10.0.0.2/32
+</span><span style="color:#f07219;">Endpoint </span><span style="color:#3e999f;">= </span><span>127.0.0.1:6666  </span><span style="color:#8e908c;"># Local UDP port proxied by Xray
+</span><span style="color:#f07219;">PersistentKeepalive </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">10
+</span></code></pre>
+<h3 id="client-configuration-1">Client Configuration</h3>
+<p>Set up WireGuard on the client:</p>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8e908c;"># Client configuration: /etc/wireguard/wg0.conf
+</span><span style="color:#8959a8;">[Interface]
+</span><span style="color:#f07219;">Address </span><span style="color:#3e999f;">= </span><span>10.0.0.2/24
+</span><span style="color:#f07219;">PrivateKey </span><span style="color:#3e999f;">= &lt;</span><span>client_private_key</span><span style="color:#3e999f;">&gt;
+</span><span style="color:#f07219;">MTU </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">1300
+</span><span>
+</span><span style="color:#8959a8;">[Peer]
+</span><span style="color:#f07219;">PublicKey </span><span style="color:#3e999f;">= &lt;</span><span>server_public_key</span><span style="color:#3e999f;">&gt;
+</span><span style="color:#f07219;">AllowedIPs </span><span style="color:#3e999f;">= </span><span>10.0.0.0/24
+</span><span style="color:#f07219;">Endpoint </span><span style="color:#3e999f;">= </span><span>127.0.0.1:6666  </span><span style="color:#8e908c;"># Local UDP port proxied by Xray
+</span><span style="color:#f07219;">PersistentKeepalive </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">10
+</span></code></pre>
+<p>In this setup, WireGuard traffic is sent to a local port (<code>6666</code>), which is proxied by Xray over the Reality protocol to the server.</p>
+<h2 id="routing-a-single-client-s-traffic-through-the-vpn-on-mikrotik">Routing a Single Client's Traffic through the VPN on Mikrotik</h2>
+<p>To route a specific client's traffic through the VPN using a Mikrotik router, follow these steps:</p>
+<ol>
+<li>
+<p><strong>Create a New Routing Table:</strong></p>
+<pre data-lang="shell" style="background-color:#f9f9f9;color:#111111;" class="language-shell "><code class="language-shell" data-lang="shell"><span>/routing table add fib name=vpn
+</span></code></pre>
+<p>This command creates a new routing table named <code>vpn</code>, which will be used to direct traffic through the VPN interface.</p>
+</li>
+<li>
+<p><strong>Mark Routing for the Specific Client:</strong></p>
+<pre data-lang="shell" style="background-color:#f9f9f9;color:#111111;" class="language-shell "><code class="language-shell" data-lang="shell"><span>/ip firewall mangle add action=mark-routing chain=prerouting new-routing-mark=vpn passthrough=yes src-address=192.168.90.234
+</span></code></pre>
+<p>This firewall mangle rule marks all traffic originating from the client with IP address <code>192.168.90.234</code>. The <code>new-routing-mark=vpn</code> ensures that packets from this client use the <code>vpn</code> routing table.</p>
+</li>
+<li>
+<p><strong>Add a Route in the VPN Routing Table:</strong></p>
+<pre data-lang="shell" style="background-color:#f9f9f9;color:#111111;" class="language-shell "><code class="language-shell" data-lang="shell"><span>/ip route add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=homenet routing-table=vpn
+</span></code></pre>
+<p>This adds a default route (<code>0.0.0.0/0</code>) to the <code>vpn</code> routing table, directing marked traffic to the <code>homenet</code> gateway (which should be the VPN interface).</p>
+</li>
+</ol>
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/wireguard/>wireguard</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/vpn/>vpn</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/vless/>vless</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2024 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 6dd1de1 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

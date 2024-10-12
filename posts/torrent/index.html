@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             qBittornt web via VPN
+            
+        </title>
+
+        
+            <meta property="og:title" content="qBittornt web via VPN" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="Installing qBittornt web and VPN only download" />
+        
+    
+
+    
+        
+            <meta name="description" content="Installing qBittornt web and VPN only download" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">qBittornt web via VPN</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2023-08-25
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <h2 id="requirements">Requirements</h2>
+<ul>
+<li>Ubuntu Linux server (tested on 18.04 and 20.04)</li>
+<li>NGINX</li>
+<li>Wireguard VPN config (easy to change to any other vpn)</li>
+</ul>
+<hr />
+<h2 id="installing">Installing</h2>
+<p>Install <code>qbittorrent-nox</code> for headless qBittorent package:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> apt install</span><span style="color:#f07219;"> -y</span><span style="color:#4271ae;"> qbittorrent-nox
+</span></code></pre>
+<h2 id="configuring-vpn-network-namespace">Configuring VPN Network Namespace</h2>
+<p>Create <code>/usr/bin/torrent_ns</code> script and make it exucutable. It configures Network Namespace for qBittorent.</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">VPN_CFG_NAME</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">torrent
+</span><span style="color:#c82728;">VPN_COMMAND</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">&quot;wg-quick up ${</span><span style="color:#c82728;">VPN_CFG_NAME</span><span style="color:#839c00;">}&quot;
+</span><span style="color:#8959a8;">export </span><span style="color:#c82728;">SCRIPT</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">$(</span><span style="color:#c82728;">cat </span><span style="color:#3e999f;">&lt;&lt;-</span><span style="color:#8959a8;">END
+</span><span style="color:#839c00;">#!/bin/bash
+</span><span style="color:#839c00;">ip netns del torrent
+</span><span style="color:#839c00;">sleep 2
+</span><span style="color:#839c00;">ip netns add torrent
+</span><span style="color:#839c00;">ip link add veth0 type veth peer name veth1
+</span><span style="color:#839c00;">ip link set veth1 netns torrent
+</span><span style="color:#839c00;">ip address add 10.99.99.1/24 dev veth0
+</span><span style="color:#839c00;">ip netns exec torrent ip address add 10.99.99.2/24 dev veth1
+</span><span style="color:#839c00;">ip link set dev veth0 up
+</span><span style="color:#839c00;">ip netns exec torrent ip link set dev veth1 up
+</span><span style="color:#839c00;">ip netns exec torrent ip route add default via 10.99.99.1
+</span><span style="color:#839c00;">mkdir -p /etc/netns/torrent
+</span><span style="color:#839c00;">echo nameserver 8.8.8.8 &gt; /etc/netns/torrent/resolv.conf
+</span><span style="color:#839c00;">sleep 3
+</span><span style="color:#839c00;">ip netns exec torrent ${</span><span style="color:#c82728;">VPN_COMMAND</span><span style="color:#839c00;">}
+</span><span style="color:#839c00;">sleep 3
+</span><span style="color:#839c00;">ip netns exec torrent sudo -u ${</span><span style="color:#c82728;">USER</span><span style="color:#839c00;">} qbittorrent-nox
+</span><span style="color:#8959a8;">END
+</span><span style="color:#839c00;">)
+</span><span>
+</span><span style="color:#c82728;">sudo</span><span style="color:#f07219;"> -E</span><span style="color:#4271ae;"> bash</span><span style="color:#f07219;"> -c </span><span style="color:#839c00;">&#39;cat &gt; /usr/bin/torrent_ns &lt;&lt; EOF
+</span><span style="color:#839c00;">${SCRIPT}
+</span><span style="color:#839c00;">EOF
+</span><span style="color:#839c00;">&#39;
+</span><span>
+</span><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> chmod +x /usr/bin/torrent_ns
+</span></code></pre>
+<h2 id="systemd-autostart">Systemd Autostart</h2>
+<p>Systemd unit to enable autostart:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#8959a8;">export </span><span style="color:#c82728;">SERVICE</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">$(</span><span style="color:#c82728;">cat </span><span style="color:#3e999f;">&lt;&lt;-</span><span style="color:#8959a8;">END
+</span><span style="color:#839c00;">[Unit]
+</span><span style="color:#839c00;">Description=qBittorrent via vpn
+</span><span style="color:#839c00;">After=network.target
+</span><span style="color:#839c00;">StartLimitIntervalSec=0
+</span><span style="color:#839c00;">
+</span><span style="color:#839c00;">[Service]
+</span><span style="color:#839c00;">Type=simple
+</span><span style="color:#839c00;">Restart=always
+</span><span style="color:#839c00;">RestartSec=1
+</span><span style="color:#839c00;">User=root
+</span><span style="color:#839c00;">ExecStart=/usr/bin/torrent_ns
+</span><span style="color:#839c00;">ExecStop=/usr/bin/ip netns del torrent
+</span><span style="color:#8959a8;">END
+</span><span style="color:#839c00;">)
+</span><span>
+</span><span style="color:#c82728;">sudo</span><span style="color:#f07219;"> -E</span><span style="color:#4271ae;"> bash</span><span style="color:#f07219;"> -c </span><span style="color:#839c00;">&#39;cat &gt; /etc/systemd/system/qbittorrent.service &lt;&lt; EOF
+</span><span style="color:#839c00;">${SERVICE}
+</span><span style="color:#839c00;">EOF
+</span><span style="color:#839c00;">&#39;
+</span><span>
+</span><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> systemctl enable</span><span style="color:#f07219;"> --now</span><span style="color:#4271ae;"> qbittorrent.service
+</span></code></pre>
+<h2 id="nginx-reverse-proxy">Nginx Reverse Proxy</h2>
+<pre data-lang="js" style="background-color:#f9f9f9;color:#111111;" class="language-js "><code class="language-js" data-lang="js"><span># </span><span style="color:#3e999f;">/</span><span style="color:#c82728;">etc</span><span style="color:#3e999f;">/</span><span style="color:#c82728;">nginx</span><span style="color:#3e999f;">/</span><span style="color:#c82728;">sites</span><span style="color:#3e999f;">-</span><span style="color:#c82728;">enabled</span><span style="color:#3e999f;">/</span><span style="color:#c82728;">tr</span><span>.</span><span style="color:#c82728;">hexor</span><span>.</span><span style="color:#c82728;">cy</span><span>.</span><span style="color:#c82728;">conf 
+</span><span style="color:#c82728;">server </span><span>{
+</span><span>        </span><span style="color:#c82728;">listen </span><span style="color:#f07219;">443 </span><span style="color:#c82728;">ssl http2</span><span>;
+</span><span>        </span><span style="color:#c82728;">server_name tr</span><span>.</span><span style="color:#c82728;">hexor</span><span>.</span><span style="color:#c82728;">ru</span><span>;
+</span><span>        </span><span style="color:#c82728;">include ssl</span><span>.</span><span style="color:#c82728;">conf</span><span>; # </span><span style="color:#c82728;">my own ssl config
+</span><span>        </span><span style="color:#c82728;">location </span><span style="color:#3e999f;">/ </span><span>{
+</span><span>                </span><span style="color:#c82728;">proxy_pass </span><span>http:</span><span style="color:#8e908c;">//10.99.99.2:8080;
+</span><span>                </span><span style="color:#c82728;">proxy_set_header Host $host</span><span>;
+</span><span>                </span><span style="color:#c82728;">proxy_set_header X</span><span style="color:#3e999f;">-</span><span style="color:#c82728;">Real</span><span style="color:#3e999f;">-</span><span style="color:#c82728;">IP $remote_addr</span><span>;
+</span><span>                </span><span style="color:#c82728;">proxy_set_header X</span><span style="color:#3e999f;">-</span><span style="color:#c82728;">Forwarded</span><span style="color:#3e999f;">-</span><span style="color:#c82728;">For $proxy_add_x_forwarded_for</span><span>;
+</span><span>                </span><span style="color:#c82728;">proxy_set_header X</span><span style="color:#3e999f;">-</span><span style="color:#c82728;">Forwarded</span><span style="color:#3e999f;">-</span><span style="color:#c82728;">Proto $scheme</span><span>;
+</span><span>                </span><span style="color:#c82728;">proxy_hide_header   Referer</span><span>;
+</span><span>                </span><span style="color:#c82728;">proxy_hide_header   Origin</span><span>;
+</span><span>                </span><span style="color:#c82728;">proxy_set_header    Referer                 </span><span style="color:#839c00;">&#39;&#39;</span><span>;
+</span><span>                </span><span style="color:#c82728;">proxy_set_header    Origin                  </span><span style="color:#839c00;">&#39;&#39;</span><span>;
+</span><span>        }
+</span><span>}
+</span><span style="color:#c82728;">server </span><span>{
+</span><span>        </span><span style="color:#c82728;">listen </span><span style="color:#f07219;">80</span><span>;
+</span><span>        </span><span style="color:#c82728;">server_name tr</span><span>.</span><span style="color:#c82728;">hexor</span><span>.</span><span style="color:#c82728;">cy</span><span>;
+</span><span>        </span><span style="color:#c82728;">listen </span><span>[::]:</span><span style="color:#f07219;">80</span><span>;
+</span><span>        </span><span style="color:#8959a8;">return </span><span style="color:#f07219;">302 </span><span>https:</span><span style="color:#8e908c;">//$host$request_uri;
+</span><span>}
+</span></code></pre>
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/torrent/>torrent</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/network/>network</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/selfhosting/>selfhosting</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2024 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 6dd1de1 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             KVM&#x2F;QEMU self hosted hypervisor
+            
+        </title>
+
+        
+            <meta property="og:title" content="KVM&#x2F;QEMU self hosted hypervisor" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="Installing home hypervisor with remote control" />
+        
+    
+
+    
+        
+            <meta name="description" content="Installing home hypervisor with remote control" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">KVM&#x2F;QEMU self hosted hypervisor</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2020-07-14
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <h2 id="requirements">Requirements</h2>
+<ul>
+<li>Ubuntu Linux server (tested on 18.04 and 20.04)</li>
+<li>CPU with virtualisation enabled</li>
+</ul>
+<hr />
+<h2 id="installing">Installing</h2>
+<p>Installing VT staff</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> apt install qemu-kvm libvirt-clients libvirt-daemon-system bridge-utils
+</span></code></pre>
+<p>I'd like to assign IPs for my VMs in the same network as server.</p>
+<p>Here is <code>netplan</code> config:</p>
+<pre data-lang="yaml" style="background-color:#f9f9f9;color:#111111;" class="language-yaml "><code class="language-yaml" data-lang="yaml"><span style="color:#8e908c;"># /etc/netplan/00-installer-config.yaml
+</span><span style="color:#c82728;">network</span><span>:
+</span><span>  </span><span style="color:#c82728;">ethernets</span><span>:
+</span><span>    </span><span style="color:#c82728;">enp2s0f0</span><span>:
+</span><span>      </span><span style="color:#c82728;">dhcp4</span><span>: </span><span style="color:#f07219;">false
+</span><span>      </span><span style="color:#c82728;">dhcp6</span><span>: </span><span style="color:#f07219;">false
+</span><span>  </span><span style="color:#c82728;">bridges</span><span>:
+</span><span>    </span><span style="color:#c82728;">br0</span><span>:
+</span><span>      </span><span style="color:#c82728;">interfaces</span><span>: [</span><span style="color:#839c00;">enp2s0f0</span><span>]
+</span><span>      </span><span style="color:#c82728;">dhcp4</span><span>: </span><span style="color:#f07219;">true
+</span><span>      </span><span style="color:#c82728;">dhcp6</span><span>: </span><span style="color:#f07219;">true
+</span><span>  </span><span style="color:#c82728;">version</span><span>: </span><span style="color:#f07219;">2
+</span></code></pre>
+<p>Generate and apply network config:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> netplan generate
+</span><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> netplan</span><span style="color:#f07219;"> --debug</span><span style="color:#4271ae;"> apply
+</span><span>
+</span><span style="color:#8e908c;"># Check bridge
+</span><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> networkctl
+</span><span style="color:#c82728;">IDX</span><span style="color:#4271ae;"> LINK       TYPE     OPERATIONAL SETUP
+</span><span>  </span><span style="color:#c82728;">1</span><span style="color:#4271ae;"> lo         loopback carrier     unmanaged
+</span><span>  </span><span style="color:#c82728;">2</span><span style="color:#4271ae;"> enp2s0f0   ether    enslaved    configured
+</span><span>  </span><span style="color:#c82728;">3</span><span style="color:#4271ae;"> br0        bridge   routable    configured
+</span><span>  </span><span style="color:#c82728;">4</span><span style="color:#4271ae;"> virbr0     bridge   no-carrier  unmanaged
+</span><span>  </span><span style="color:#c82728;">5</span><span style="color:#4271ae;"> virbr0-nic ether    off         unmanaged
+</span><span>
+</span><span style="color:#8e908c;"># Check DHCP lease on new bridge
+</span><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> ip a 
+</span><span style="color:#c82728;">2:</span><span style="color:#4271ae;"> enp2s0f0: </span><span style="color:#3e999f;">&lt;</span><span style="color:#4271ae;">BROADCAST,MULTICAST,UP,LOWER_UP</span><span style="color:#3e999f;">&gt;</span><span style="color:#4271ae;"> mtu 1500 qdisc mq master br0 state UP group default qlen 1000
+</span><span>    </span><span style="color:#c82728;">link/ether</span><span style="color:#4271ae;"> xxx brd ff:ff:ff:ff:ff:ff
+</span><span style="color:#c82728;">4:</span><span style="color:#4271ae;"> br0: </span><span style="color:#3e999f;">&lt;</span><span style="color:#4271ae;">BROADCAST,MULTICAST,UP,LOWER_UP</span><span style="color:#3e999f;">&gt;</span><span style="color:#4271ae;"> mtu 1500 qdisc noqueue state UP group default qlen 1000
+</span><span>    </span><span style="color:#c82728;">link/ether</span><span style="color:#4271ae;"> xxx brd ff:ff:ff:ff:ff:ff
+</span><span>    </span><span style="color:#c82728;">inet</span><span style="color:#4271ae;"> 192.168.88.28/24 brd 192.168.88.255 scope global dynamic br0
+</span><span>       </span><span style="color:#c82728;">valid_lft</span><span style="color:#4271ae;"> 535sec preferred_lft 535sec
+</span></code></pre>
+<hr />
+<h2 id="managing-vms">Managing VMs</h2>
+<p>Grant permissions to use virtmanager to your user on server:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> adduser $</span><span style="color:#c82728;">USER</span><span style="color:#4271ae;"> libvirt-qemu
+</span><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> adduser $</span><span style="color:#c82728;">USER</span><span style="color:#4271ae;"> libvirt
+</span></code></pre>
+<p>Use virt-manager GUI utility on client or virsh CLI tool for managing VMs and data pools.</p>
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/kvm/>kvm</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/selfhosting/>selfhosting</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2024 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 6dd1de1 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

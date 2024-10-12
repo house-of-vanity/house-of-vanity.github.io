@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             Private WireGuard telegram bot
+            
+        </title>
+
+        
+            <meta property="og:title" content="Private WireGuard telegram bot" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="Your own telegram bot for managing WireGuard peers" />
+        
+    
+
+    
+        
+            <meta name="description" content="Your own telegram bot for managing WireGuard peers" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">Private WireGuard telegram bot</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2023-08-25
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <h1 id="wireguard-peer-manager">Wireguard-Peer-Manager</h1>
+<p><img src="https://user-images.githubusercontent.com/4666566/117325184-56f7f800-ae45-11eb-9003-b85aadbf5ff0.png" alt="image" /></p>
+<p>That bot can add Wireguard peers to config, reload it and send client config back via Telegram. </p>
+<p><mark><strong>FYI: That tool stores client private keys into server config as comments.</strong></mark></p>
+<p>How to use:</p>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8e908c;"># create initial wg config or use your own.
+</span><span style="color:#8e908c;"># P.S. Keep in mind that WPM can&#39;t manage peers created manually
+</span><span style="color:#8e908c;"># due to absence of client private key.
+</span><span>
+</span><span style="color:#f07219;">export CONFIG</span><span style="color:#3e999f;">=</span><span>$(cat </span><span style="color:#3e999f;">&lt;&lt;-</span><span style="color:#f07219;">END
+</span><span style="color:#8959a8;">[Interface]
+</span><span style="color:#f07219;">Address </span><span style="color:#3e999f;">= </span><span>10.150.200.1/24
+</span><span style="color:#f07219;">ListenPort </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">51820
+</span><span style="color:#f07219;">PrivateKey </span><span style="color:#3e999f;">=</span><span> $(wg genkey)
+</span><span style="color:#f07219;">PostUp </span><span style="color:#3e999f;">=</span><span> iptables </span><span style="color:#3e999f;">-</span><span style="color:#f07219;">A FORWARD </span><span style="color:#3e999f;">-</span><span>i </span><span style="color:#8959a8;">%i </span><span style="color:#3e999f;">-</span><span>o </span><span style="color:#8959a8;">%i </span><span style="color:#3e999f;">-</span><span>j </span><span style="color:#f07219;">ACCEPT
+</span><span style="color:#f07219;">PostDown </span><span style="color:#3e999f;">=</span><span> iptables </span><span style="color:#3e999f;">-</span><span style="color:#f07219;">D FORWARD </span><span style="color:#3e999f;">-</span><span>i </span><span style="color:#8959a8;">%i </span><span style="color:#3e999f;">-</span><span>o </span><span style="color:#8959a8;">%i </span><span style="color:#3e999f;">-</span><span>j </span><span style="color:#f07219;">ACCEPT
+</span><span style="color:#f07219;">SaveConfig </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">false
+</span><span style="color:#8959a8;">END
+</span><span>)
+</span><span>
+</span><span style="color:#f07219;">sudo </span><span style="color:#3e999f;">-</span><span style="color:#f07219;">E</span><span> bash </span><span style="color:#3e999f;">-</span><span>c </span><span style="color:#839c00;">&#39;cat &gt; /etc/wireguard/private.conf &lt;&lt; EOF
+</span><span style="color:#839c00;">${CONFIG}
+</span><span style="color:#839c00;">EOF
+</span><span style="color:#839c00;">&#39;
+</span><span>
+</span><span style="color:#f07219;">cd </span><span style="color:#3e999f;">/</span><span>etc</span><span style="color:#3e999f;">/</span><span>wiregurad
+</span><span style="color:#f07219;">sudo </span><span>git clone https://github.com/house-of-vanity/Wireguard-Peer-Manager wpm
+</span><span style="color:#f07219;">cd </span><span>wpm
+</span><span>
+</span><span style="color:#8e908c;"># install python and system requirements.
+</span><span style="color:#f07219;">apt </span><span>install qrencode python3</span><span style="color:#3e999f;">-</span><span>pip
+</span><span style="color:#f07219;">pip3 </span><span>install </span><span style="color:#3e999f;">-</span><span>r requirements</span><span style="color:#3e999f;">.</span><span>txt
+</span><span>
+</span><span style="color:#8e908c;"># Create config
+</span><span style="color:#f07219;">cp </span><span>wpm_example</span><span style="color:#3e999f;">.</span><span>conf wpm</span><span style="color:#3e999f;">.</span><span>conf
+</span><span>
+</span><span style="color:#8e908c;"># CLI usage. Client configs saved into `clients/peer_name.{conf,-qr.png,-qr.txt}`
+</span><span style="color:#f07219;">python3 </span><span>gen</span><span style="color:#3e999f;">.</span><span>py </span><span style="color:#3e999f;">--</span><span>peer my</span><span style="color:#3e999f;">-</span><span>pc   </span><span style="color:#8e908c;"># add a new peer `my-pc`
+</span><span style="color:#f07219;">python3 </span><span>gen</span><span style="color:#3e999f;">.</span><span>py </span><span style="color:#3e999f;">--</span><span>delete my</span><span style="color:#3e999f;">-</span><span>pc </span><span style="color:#8e908c;"># delete peer `my-pc`
+</span><span style="color:#f07219;">python3 </span><span>gen</span><span style="color:#3e999f;">.</span><span>py </span><span style="color:#3e999f;">--</span><span>update       </span><span style="color:#8e908c;"># just regenerate all configs in `clients/`
+</span><span style="color:#f07219;">python3 </span><span>gen</span><span style="color:#3e999f;">.</span><span>py </span><span style="color:#3e999f;">--</span><span>json         </span><span style="color:#8e908c;"># show WG status in JSON
+</span><span>
+</span><span style="color:#8e908c;"># Telegram bot usage
+</span><span style="color:#f07219;">TG_TOKEN</span><span style="color:#3e999f;">=</span><span style="color:#f07219;">1292121488</span><span style="color:#3e999f;">:</span><span style="color:#f07219;">AAG</span><span style="color:#3e999f;">... </span><span style="color:#f07219;">TG_ADMIN</span><span style="color:#3e999f;">=&lt;</span><span>comma separated list of usernames</span><span style="color:#3e999f;">&gt;</span><span> python3 bot</span><span style="color:#3e999f;">.</span><span>py
+</span><span>
+</span></code></pre>
+<h2 id="config">Config</h2>
+<table><thead><tr><th>Key</th><th>Default</th><th>Description</th></tr></thead><tbody>
+<tr><td>allowed_ips</td><td>0.0.0.0</td><td>allowed_ips for generated peer configs.</td></tr>
+<tr><td>dns</td><td>8.8.8.8</td><td>DNS for peer configs</td></tr>
+<tr><td>hostname</td><td>$(hostname -f):51820</td><td>server address for peer configs. May be an IP.</td></tr>
+<tr><td>config</td><td>wg0</td><td>WireGuard config to work with.</td></tr>
+</tbody></table>
+<h2 id="telegram-interface">Telegram Interface</h2>
+<p><img src="https://user-images.githubusercontent.com/4666566/117370133-cc31f000-ae7a-11eb-93fd-a390d2616da8.png" alt="drawing" width="450"/> <img src="https://user-images.githubusercontent.com/4666566/117377076-48323500-ae87-11eb-9602-a0cd3072ff53.png" alt="drawing" width="350"/></p>
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/torrent/>torrent</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/network/>network</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/selfhosting/>selfhosting</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/wireguard/>wireguard</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/vpn/>vpn</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2024 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 6dd1de1 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

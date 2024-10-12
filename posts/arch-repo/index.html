@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             Own Arch Linux Repository
+            
+        </title>
+
+        
+            <meta property="og:title" content="Own Arch Linux Repository" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="self-hosted repository for your own Arch Linux packages" />
+        
+    
+
+    
+        
+            <meta name="description" content="self-hosted repository for your own Arch Linux packages" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">Own Arch Linux Repository</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2020-07-14
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Ubuntu Server with Nginx and Docker</li>
+</ul>
+<hr />
+<h2 id="creating-repository">Creating repository</h2>
+<p>Repository database is managed via <code>repo-add</code> script bundled with Arch Linux <code>pacman</code> package manager. Since pacman is not available in Ubuntu repository I use docker <code>archlinux</code> image for managing repository. This guide assumes that repository located in <code>/srv/arch-repo</code>. First of all move all your packages into /srv/arch-repo. Following command will create or update repository database.</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">REPO_URL</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">repo.sun.hexor.ru
+</span><span style="color:#c82728;">REPO_PATH</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">/srv/arch-repo
+</span><span style="color:#c82728;">docker</span><span style="color:#4271ae;"> run</span><span style="color:#f07219;"> -v </span><span style="color:#4271ae;">${</span><span style="color:#c82728;">REPO_PATH</span><span style="color:#4271ae;">}:/repo</span><span style="color:#f07219;"> --rm</span><span style="color:#4271ae;"> archlinux \
+</span><span style="color:#4271ae;">bash</span><span style="color:#f07219;"> -c </span><span style="color:#839c00;">&quot;repo-add /repo/${</span><span style="color:#c82728;">REPO_URL</span><span style="color:#839c00;">}.db.tar.gz /repo/*pkg.tar.zst&quot;
+</span></code></pre>
+<h3 id="important-aspect"><strong>Important aspect</strong></h3>
+<ul>
+<li>Name of the database should be REPO_URL.db.tar.gz, in this case REPO_URL is repo.sun.hexor.ru.</li>
+</ul>
+<hr />
+<h2 id="periodically-database-repo-update">Periodically database repo update</h2>
+<p>I use systemd:</p>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8e908c;"># Service unit
+</span><span style="color:#8e908c;"># /etc/systemd/system/update-arch-repo.service
+</span><span style="color:#8959a8;">[Unit]
+</span><span style="color:#f07219;">Description</span><span style="color:#3e999f;">=</span><span>Updating arch linux repository database for </span><span style="color:#8959a8;">%I
+</span><span style="color:#f07219;">Requires</span><span style="color:#3e999f;">=</span><span>docker</span><span style="color:#3e999f;">.</span><span>service
+</span><span>
+</span><span style="color:#8959a8;">[Service]
+</span><span style="color:#f07219;">ExecStart</span><span style="color:#3e999f;">=/</span><span>usr</span><span style="color:#3e999f;">/</span><span>bin</span><span style="color:#3e999f;">/</span><span>docker run </span><span style="color:#3e999f;">-</span><span>v </span><span style="color:#3e999f;">/</span><span>srv</span><span style="color:#3e999f;">/</span><span>arch</span><span style="color:#3e999f;">-</span><span>repo</span><span style="color:#3e999f;">:/</span><span>repo </span><span style="color:#3e999f;">--</span><span>rm archlinux bash </span><span style="color:#3e999f;">-</span><span>c </span><span style="color:#839c00;">&quot;repo-add /repo/%i.db.tar.gz /repo/*pkg.tar.zst&quot;
+</span><span>
+</span><span style="color:#8959a8;">[Install]
+</span><span style="color:#f07219;">WantedBy</span><span style="color:#3e999f;">=</span><span>multi</span><span style="color:#3e999f;">-</span><span>user</span><span style="color:#3e999f;">.</span><span>target
+</span></code></pre>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8e908c;"># Timer unit
+</span><span style="color:#8e908c;"># /etc/systemd/system/update-arch-repo.timer
+</span><span style="color:#8959a8;">[Unit]
+</span><span style="color:#f07219;">Description</span><span style="color:#3e999f;">=</span><span>Schedule arch repo database update for </span><span style="color:#8959a8;">%I
+</span><span>
+</span><span style="color:#8959a8;">[Timer]
+</span><span style="color:#8e908c;"># every 15 minutes
+</span><span style="color:#f07219;">OnCalendar</span><span style="color:#3e999f;">=*:</span><span style="color:#f07219;">0</span><span style="color:#3e999f;">/</span><span style="color:#f07219;">15
+</span><span>
+</span><span style="color:#8959a8;">[Install]
+</span><span style="color:#f07219;">WantedBy</span><span style="color:#3e999f;">=</span><span>timers</span><span style="color:#3e999f;">.</span><span>target
+</span></code></pre>
+<p>Activate timer:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">REPO_URL</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">repo.sun.hexor.ru
+</span><span style="color:#c82728;">systemctl</span><span style="color:#4271ae;"> enable update-arch-repo@${</span><span style="color:#c82728;">REPO_URL</span><span style="color:#4271ae;">}.timer
+</span></code></pre>
+<h2 id="reverse-proxy-for-https-access">Reverse proxy for HTTPS access</h2>
+<p>I use NGINX</p>
+<pre data-lang="js" style="background-color:#f9f9f9;color:#111111;" class="language-js "><code class="language-js" data-lang="js"><span style="color:#c82728;">server </span><span>{
+</span><span>    </span><span style="color:#c82728;">server_name repo</span><span>.</span><span style="color:#c82728;">sun</span><span>.</span><span style="color:#c82728;">hexor</span><span>.</span><span style="color:#c82728;">ru</span><span>;
+</span><span>    </span><span style="color:#c82728;">listen </span><span>[::]:</span><span style="color:#f07219;">443 </span><span style="color:#c82728;">ssl</span><span>;
+</span><span>    </span><span style="color:#c82728;">listen </span><span style="color:#f07219;">443 </span><span style="color:#c82728;">ssl</span><span>;
+</span><span>    </span><span style="color:#c82728;">include security</span><span>.</span><span style="color:#c82728;">conf</span><span>; # </span><span style="color:#c82728;">my security options
+</span><span>    </span><span style="color:#c82728;">include letsencrypt</span><span>.</span><span style="color:#c82728;">conf</span><span>; # </span><span style="color:#c82728;">my ssl config</span><span>. 
+</span><span>    root </span><span style="color:#3e999f;">/</span><span style="color:#c82728;">srv</span><span style="color:#3e999f;">/</span><span style="color:#c82728;">arch</span><span style="color:#3e999f;">-</span><span style="color:#c82728;">repo</span><span>;
+</span><span>    </span><span style="color:#c82728;">location </span><span style="color:#3e999f;">/ </span><span>{
+</span><span>        </span><span style="color:#c82728;">autoindex on</span><span>;
+</span><span>        </span><span style="color:#c82728;">try_files $uri $uri</span><span style="color:#3e999f;">/ =</span><span style="color:#f07219;">404</span><span>;
+</span><span>    }
+</span><span>    </span><span style="color:#c82728;">access_log </span><span style="color:#3e999f;">/</span><span style="color:#8959a8;">var</span><span>/</span><span style="color:#c82728;">log</span><span>/nginx/logs/repo.sun.hexor.ru.access.log custom;
+</span><span>    </span><span style="color:#c82728;">error_log </span><span style="color:#3e999f;">/</span><span style="color:#8959a8;">var</span><span>/</span><span style="color:#c82728;">log</span><span>/nginx/logs/repo.sun.hexor.ru.error.log;
+</span><span>}
+</span></code></pre>
+<h2 id="configure-repo-on-your-machines">Configure repo on your machines</h2>
+<p>Add your repo to <code>/etc/pacman.conf</code>:</p>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8959a8;">[repo.sun.hexor.ru]
+</span><span style="color:#f07219;">Server </span><span style="color:#3e999f;">= </span><span>https://repo.sun.hexor.ru
+</span></code></pre>
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/nginx/>nginx</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/selfhosting/>selfhosting</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2024 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 6dd1de1 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

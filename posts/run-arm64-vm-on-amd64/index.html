@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             Run arm64 VM on amd64
+            
+        </title>
+
+        
+            <meta property="og:title" content="Run arm64 VM on amd64" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="Simple way to test arm64 workflow on amd64" />
+        
+    
+
+    
+        
+            <meta name="description" content="Simple way to test arm64 workflow on amd64" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">Run arm64 VM on amd64</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2024-10-12
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <h2 id="install-qemu">Install QEMU</h2>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> apt install qemu-system-arm
+</span></code></pre>
+<h2 id="create-necessary-support-files">Create necessary support files</h2>
+<p>Next, create a VM-specific flash volume for storing NVRAM variables, which are necessary when booting EFI firmware:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">truncate</span><span style="color:#f07219;"> -s</span><span style="color:#4271ae;"> 64m varstore.img
+</span><span style="color:#c82728;">truncate</span><span style="color:#f07219;"> -s</span><span style="color:#4271ae;"> 64m efi.img
+</span><span style="color:#c82728;">dd</span><span style="color:#4271ae;"> if=/usr/share/qemu-efi-aarch64/QEMU_EFI.fd of=efi.img conv=notrunc
+</span></code></pre>
+<h2 id="fetch-the-ubuntu-cloud-image">Fetch the Ubuntu cloud image</h2>
+<p>You need to fetch the ARM64 variant of the Ubuntu cloud image you would like to use in the virtual machine. You can go to the official <a href="https://cloud-images.ubuntu.com/">Ubuntu cloud image website</a>, select the Ubuntu release, and then download the variant whose filename ends in -arm64.img. For example, if you want to use the latest Jammy cloud image, you should download the file named jammy-server-cloudimg-arm64.img.</p>
+<h2 id="run-qemu-natively-on-an-arm64-host">Run QEMU natively on an ARM64 host</h2>
+<p>If you have access to an ARM64 host, you should be able to create and launch an ARM64 virtual machine there. Note that the command below assumes that you have already set up a network bridge to be used by the virtual machine.</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> qemu-system-aarch64 \
+</span><span style="color:#f07219;"> -enable-kvm </span><span style="color:#4271ae;">\
+</span><span style="color:#f07219;"> -m</span><span style="color:#4271ae;"> 1024 \
+</span><span style="color:#f07219;"> -cpu</span><span style="color:#4271ae;"> host \
+</span><span style="color:#f07219;"> -M</span><span style="color:#4271ae;"> virt \
+</span><span style="color:#f07219;"> -nographic </span><span style="color:#4271ae;">\
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=pflash,format=raw,file=efi.img,readonly=on \
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=pflash,format=raw,file=varstore.img \
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=none,file=jammy-server-cloudimg-arm64.img,id=hd0 \
+</span><span style="color:#f07219;"> -device</span><span style="color:#4271ae;"> virtio-blk-device,drive=hd0</span><span style="color:#f07219;"> -netdev</span><span style="color:#4271ae;"> type=tap,id=net0 \
+</span><span style="color:#f07219;"> -device</span><span style="color:#4271ae;"> virtio-net-device,netdev=net0
+</span></code></pre>
+<h2 id="run-an-emulated-arm64-vm-on-x86">Run an emulated ARM64 VM on x86</h2>
+<p>You can also emulate an ARM64 virtual machine on an x86 host. To do that:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> qemu-system-aarch64 \
+</span><span style="color:#f07219;"> -m</span><span style="color:#4271ae;"> 2048 \
+</span><span style="color:#f07219;"> -cpu</span><span style="color:#4271ae;"> max \
+</span><span style="color:#f07219;"> -M</span><span style="color:#4271ae;"> virt \
+</span><span style="color:#f07219;"> -nographic </span><span style="color:#4271ae;">\
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=pflash,format=raw,file=efi.img,readonly=on \
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=pflash,format=raw,file=varstore.img \
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=none,file=jammy-server-cloudimg-arm64.img,id=hd0 \
+</span><span style="color:#f07219;"> -device</span><span style="color:#4271ae;"> virtio-blk-device,drive=hd0 \
+</span><span style="color:#f07219;"> -netdev</span><span style="color:#4271ae;"> type=tap,id=net0 \
+</span><span style="color:#f07219;"> -device</span><span style="color:#4271ae;"> virtio-net-device,netdev=net0
+</span></code></pre>
+<h2 id="to-set-default-password-for-image">To set default password for image</h2>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> apt-get install cloud-image-utils
+</span><span>
+</span><span style="color:#c82728;">cat </span><span style="color:#3e999f;">&gt;</span><span style="color:#4271ae;">user-data </span><span style="color:#3e999f;">&lt;&lt;</span><span style="color:#8959a8;">EOF
+</span><span style="color:#839c00;">#cloud-config
+</span><span style="color:#839c00;">password: ubuntu
+</span><span style="color:#839c00;">chpasswd: { expire: False }
+</span><span style="color:#839c00;">ssh_pwauth: True
+</span><span style="color:#8959a8;">EOF
+</span><span>
+</span><span style="color:#c82728;">cloud-localds</span><span style="color:#4271ae;"> user-data.img user-data
+</span><span>
+</span><span style="color:#8e908c;"># user-data.img MUST come after the rootfs. 
+</span><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> qemu-system-aarch64 \
+</span><span style="color:#f07219;"> -m</span><span style="color:#4271ae;"> 2048 \
+</span><span style="color:#f07219;"> -cpu</span><span style="color:#4271ae;"> max \
+</span><span style="color:#f07219;"> -M</span><span style="color:#4271ae;"> virt \
+</span><span style="color:#f07219;"> -nographic </span><span style="color:#4271ae;">\
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=pflash,format=raw,file=efi.img,readonly=on \
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=pflash,format=raw,file=varstore.img \
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> if=none,file=jammy-server-cloudimg-arm64.img,id=hd0 \
+</span><span style="color:#f07219;"> -drive</span><span style="color:#4271ae;"> file=user-data.img,format=raw \ 
+</span><span> </span><span style="color:#c82728;">-device</span><span style="color:#4271ae;"> virtio-blk-device,drive=hd0 \
+</span><span style="color:#f07219;"> -netdev</span><span style="color:#4271ae;"> type=tap,id=net0 \
+</span><span style="color:#f07219;"> -device</span><span style="color:#4271ae;"> virtio-net-device,netdev=net0
+</span><span>
+</span><span>
+</span></code></pre>
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/virtualization/>virtualization</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/arm64/>arm64</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/qemu/>qemu</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2024 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 6dd1de1 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

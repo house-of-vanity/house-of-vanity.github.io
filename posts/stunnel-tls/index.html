@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             Expose service via TLS stunnel
+            
+        </title>
+
+        
+            <meta property="og:title" content="Expose service via TLS stunnel" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="How to expose any TCP application securely via TLS tunnel" />
+        
+    
+
+    
+        
+            <meta name="description" content="How to expose any TCP application securely via TLS tunnel" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">Expose service via TLS stunnel</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2023-12-18
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <p>First of all, I encountered an issue with the Outline VPN server, which exposes Prometheus metrics on 127.0.0.1 with no option to change it. As a solution, I used stunnel4. Essentially, it works as a TLS proxy, listening on a configured port and forwarding traffic to another.</p>
+<p>[Server1 (stunnel server)] &lt;==&gt; [Server2 (stunnel client)]</p>
+<h2 id="server-side">Server side</h2>
+<p>Install stunnel and create configs:</p>
+<pre data-lang="shell" style="background-color:#f9f9f9;color:#111111;" class="language-shell "><code class="language-shell" data-lang="shell"><span>ab@cy:/etc/stunnel$ cat outline_prom.conf
+</span><span>debug = 5
+</span><span>output = /var/log/stunnel.log
+</span><span>
+</span><span>[outline_prom]
+</span><span>accept = 0.0.0.0:9095
+</span><span>connect = 127.0.0.1:9092
+</span><span>PSKsecrets = /etc/stunnel/psk.txt
+</span></code></pre>
+<p><code>psk.txt</code> is a credentials file and looks like:</p>
+<pre data-lang="shell" style="background-color:#f9f9f9;color:#111111;" class="language-shell "><code class="language-shell" data-lang="shell"><span># I used `openssl rand -hex 32` to generate secret
+</span><span>ab@cy:/etc/stunnel$ cat psk.txt
+</span><span>user:secret_string
+</span></code></pre>
+<h2 id="client-side">Client side</h2>
+<p><code>psk.txt</code> the same and config looks like:</p>
+<pre data-lang="shell" style="background-color:#f9f9f9;color:#111111;" class="language-shell "><code class="language-shell" data-lang="shell"><span>ab@home:/etc/stunnel$ cat /etc/stunnel/outline_prom.conf
+</span><span>[outline_prom_cy]
+</span><span>client = yes
+</span><span>accept = 0.0.0.0:9095
+</span><span>connect = cy.hexor.cy:9095
+</span><span>PSKsecrets = /etc/stunnel/psk.txt
+</span></code></pre>
+<hr />
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/tools/>tools</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/selfhosting/>selfhosting</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2024 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 6dd1de1 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>
