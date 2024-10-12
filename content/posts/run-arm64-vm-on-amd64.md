@@ -65,3 +65,34 @@ sudo qemu-system-aarch64 \
  -netdev type=tap,id=net0 \
  -device virtio-net-device,netdev=net0
 ```
+
+## To set default password for image
+
+```sh
+sudo apt-get install cloud-image-utils
+
+cat >user-data <<EOF
+#cloud-config
+password: ubuntu
+chpasswd: { expire: False }
+ssh_pwauth: True
+EOF
+
+cloud-localds user-data.img user-data
+
+# user-data.img MUST come after the rootfs. 
+sudo qemu-system-aarch64 \
+ -m 2048 \
+ -cpu max \
+ -M virt \
+ -nographic \
+ -drive if=pflash,format=raw,file=efi.img,readonly=on \
+ -drive if=pflash,format=raw,file=varstore.img \
+ -drive if=none,file=jammy-server-cloudimg-arm64.img,id=hd0 \
+ -drive file=user-data.img,format=raw \ 
+ -device virtio-blk-device,drive=hd0 \
+ -netdev type=tap,id=net0 \
+ -device virtio-net-device,netdev=net0
+
+
+```
