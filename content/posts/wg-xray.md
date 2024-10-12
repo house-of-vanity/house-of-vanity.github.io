@@ -12,7 +12,7 @@ author = { name = "@ultradesu", social= "https://github.com/house-of-vanity" }
 
 # Setting Up Xray with WireGuard over Reality Protocol
 
-In this guide, we'll walk through the steps to set up Xray-core to proxy WireGuard traffic using the Reality protocol over HTTP/2. This configuration can help bypass network restrictions and enhance privacy.
+In this guide, we'll walk through the steps to set up Xray-core to proxy WireGuard traffic using the Reality protocol over TCP. This configuration can help bypass network restrictions and enhance privacy.
 
 ## Installing Xray-core
 
@@ -231,7 +231,3 @@ To route a specific client's traffic through the VPN using a Mikrotik router, fo
    ```
 
    This adds a default route (`0.0.0.0/0`) to the `vpn` routing table, directing marked traffic to the `homenet` gateway (which should be the VPN interface).
-
----
-
-By combining Xray with WireGuard and configuring your Mikrotik router, you create a secure and selective VPN setup that can help bypass network restrictions for specific clients. Remember to replace placeholder values like `<server_private_key>`, `<client_private_key>`, and `<server_public_key>` with your actual keys.
