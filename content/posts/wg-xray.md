@@ -1,5 +1,5 @@
 +++
-title = "WireGuard over xRay Vless protocol"
+title = "WireGuard over Xray VLESS Protocol"
 date = "2024-10-04"
 description = "How to Maintain the WireGuard Network in Censored Countries"
 
@@ -69,7 +69,7 @@ cat > server.json <<EOF
                 "decryption": "none"
             },
             "streamSettings": {
-                "network": "h2",
+                "network": "tcp",
                 "security": "reality",
                 "realitySettings": {
                     "show": false,
@@ -96,7 +96,7 @@ cat > server.json <<EOF
 EOF
 ```
 
-This configuration sets up an inbound VLESS listener over HTTP/2 with Reality security, using the generated private key and short IDs.
+This configuration sets up an inbound VLESS listener over TCP with Reality security, using the generated private key and short IDs.
 
 ### Client Configuration
 
@@ -140,7 +140,7 @@ cat > client.json <<EOF
                 ]
             },
             "streamSettings": {
-                "network": "h2",
+                "network": "tcp",
                 "security": "reality",
                 "realitySettings": {
                     "show": false,
@@ -167,7 +167,7 @@ This client configuration captures local UDP traffic (from WireGuard) and forwar
 Set up WireGuard on the server:
 
 ```ini
-# Server configuration: /etc/wireguard/wg0.conf
+# Server configuration: /etc/wireguard/homenet.conf
 [Interface]
 Address = 10.0.0.1/24
 ListenPort = 6666
@@ -175,6 +175,13 @@ PrivateKey = <server_private_key>
 PostUp = iptables -A FORWARD -i %i -o %i -j ACCEPT
 PostDown = iptables -D FORWARD -i %i -o %i -j ACCEPT
 SaveConfig = false
+MTU = 1300
+
+[Peer]
+PublicKey = <peer_public_key>
+AllowedIPs = 10.0.0.2/32
+Endpoint = 127.0.0.1:6666  # Local UDP port proxied by Xray
+PersistentKeepalive = 10
 ```
 
 ### Client Configuration
@@ -197,6 +204,34 @@ PersistentKeepalive = 10
 
 In this setup, WireGuard traffic is sent to a local port (`6666`), which is proxied by Xray over the Reality protocol to the server.
 
+## Routing a Single Client's Traffic through the VPN on Mikrotik
+
+To route a specific client's traffic through the VPN using a Mikrotik router, follow these steps:
+
+1. **Create a New Routing Table:**
+
+   ```shell
+   /routing table add fib name=vpn
+   ```
+
+   This command creates a new routing table named `vpn`, which will be used to direct traffic through the VPN interface.
+
+2. **Mark Routing for the Specific Client:**
+
+   ```shell
+   /ip firewall mangle add action=mark-routing chain=prerouting new-routing-mark=vpn passthrough=yes src-address=192.168.90.234
+   ```
+
+   This firewall mangle rule marks all traffic originating from the client with IP address `192.168.90.234`. The `new-routing-mark=vpn` ensures that packets from this client use the `vpn` routing table.
+
+3. **Add a Route in the VPN Routing Table:**
+
+   ```shell
+   /ip route add disabled=no distance=1 dst-address=0.0.0.0/0 gateway=homenet routing-table=vpn
+   ```
+
+   This adds a default route (`0.0.0.0/0`) to the `vpn` routing table, directing marked traffic to the `homenet` gateway (which should be the VPN interface).
+
 ---
 
-By combining Xray with WireGuard and the Reality protocol, you create a secure and obfuscated tunnel that can help bypass network restrictions. Remember to replace placeholder values like `<server_private_key>`, `<client_private_key>`, and `<server_public_key>` with your actual keys.
+By combining Xray with WireGuard and configuring your Mikrotik router, you create a secure and selective VPN setup that can help bypass network restrictions for specific clients. Remember to replace placeholder values like `<server_private_key>`, `<client_private_key>`, and `<server_public_key>` with your actual keys.
