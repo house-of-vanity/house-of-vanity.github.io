@@ -55,7 +55,7 @@ In certain network environments, establishing a direct WireGuard connection may 
 [WireGuard Server]
 ```
 
-### Data Flow Explanation
+### Data Flow
 
 1. **WireGuard Client** sends UDP packets to `127.0.0.1:6666`, which is the local udp2raw Client.
 2. **udp2raw Client** encapsulates these UDP packets into encrypted UDP/TCP/ICMP packets and sends them over the internet to `SERVER_IP:7777` (the udp2raw Server).
