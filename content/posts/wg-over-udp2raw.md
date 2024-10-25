@@ -112,9 +112,7 @@ WantedBy=multi-user.target
 #### Start the Service
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable udp2raw
-sudo systemctl start udp2raw
+sudo systemctl enable --now udp2raw
 ```
 
 ### 3. Configure udp2raw on the Client
