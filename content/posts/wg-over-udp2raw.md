@@ -13,7 +13,7 @@ author = { name = "@ultradesu", social= "https://github.com/house-of-vanity" }
 
 ## Introduction
 
-In certain network environments, establishing a direct WireGuard connection may be challenging due to firewalls, NAT restrictions, or ISPs blocking UDP traffic. **udp2raw** provides a solution by encapsulating WireGuard's UDP traffic into encrypted packets that mimic TCP or ICMP protocols. This method helps bypass UDP blocking and can make your VPN connection appear as regular TCP or ICMP traffic.
+In certain network environments, establishing a direct WireGuard connection may be challenging due to firewalls, NAT restrictions, or ISPs blocking UDP traffic. **udp2raw** provides a solution by encapsulating WireGuard's UDP traffic into encrypted packets that mimic TCP or ICMP protocols. This method helps bypass UDP blocking and can make your VPN connection appear as regular TCP or ICMP traffic. Method described is almost the same as [TLS tunnel using stunnel](/posts/stunnel-tls/) but faster in my tests and works with UDP as well as with TCP.
 
 ## Prerequisites
 
