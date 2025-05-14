@@ -9,17 +9,6 @@ tags = ["travel"]
 [extra]
 author = { name = "@ultradesu", social= "https://github.com/house-of-vanity" }
 +++
-+++
-title = "Multiple-Entry Visa to Japan"
-date = "2025-05-15"
-description = "How to Obtain a Multiple-Entry Visa to Japan"
-
-[taxonomies]
-tags = ["travel"]
-
-[extra]
-author = { name = "@ultradesu", social= "https://github.com/house-of-vanity" }
-+++
 
 ## ✈️ 🇯🇵 Multiple-Entry Visa Overview
 
