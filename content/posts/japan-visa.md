@@ -77,7 +77,7 @@ Send a request by email to the local consulate. You can also ask questions about
 
 ### Embassy in Cyprus  
 🌐 [Visa Page](https://www.cy.emb-japan.go.jp/files/visa.html)  
-📧 cy-ryouji@cy.mofa.go.jp  
+📧 [cy-ryouji@cy.mofa.go.jp](mailto:cy-ryouji@cy.mofa.go.jp)
 📞 +357 22 394 800  
 
 ### Consulate in Khabarovsk  
