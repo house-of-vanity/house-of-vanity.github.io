@@ -21,6 +21,18 @@ To be eligible for a multiple-entry visa to Japan:
 - You must have visited Japan at least **once in the past 3 years**
 - You must be able to demonstrate **sufficient financial means** to support travel
 
+### 🗓️ Default Stay Duration & Pro Tip
+
+Even with a **multiple-entry visa**, the default allowed stay is usually **15 days per visit**.  
+However, if your **first trip is longer than 15 days**, immigration may automatically grant you a longer stay period:
+
+- First trip over 15 days → future stays up to 30 days  
+- First trip over 30 days → future stays may allow up to 90 days
+
+Just make sure your travel itinerary reflects the longer stay for the first visit.
+
+
+
 > _This guide is based on personal experience applying from Cyprus and Russia. The process is generally similar in other countries._
 
 ---
