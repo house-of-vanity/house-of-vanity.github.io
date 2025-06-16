@@ -16,7 +16,10 @@ author = { name = "@ultradesu", social= "https://github.com/house-of-vanity" }
 
 ```sh
 opkg update
-opkg install luci-app-shadowsocks-libev shadowsocks-libev-ss-redir shadowsocks-libev-config
+opkg install \
+  luci-app-shadowsocks-libev \
+  shadowsocks-libev-ss-redir \
+  shadowsocks-libev-config
 ```
 
 ---
