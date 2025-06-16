@@ -77,6 +77,9 @@ if [ "$action" = "on" ]; then
     iptables -t nat -A $chain -d 192.168.0.0/16 -j RETURN
     iptables -t nat -A $chain -p tcp -j REDIRECT --to-ports $port
     iptables -t nat -A PREROUTING -i br-lan -p tcp -j $chain
+
+    # Drop existing connections
+    conntrack -F
 else
     # Delete iptables rules
     iptables -t nat -D PREROUTING -i br-lan -p tcp -j $chain
