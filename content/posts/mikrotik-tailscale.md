@@ -104,12 +104,11 @@ Mount from `usb1` to **the same path** as `TS_STATE_DIR`. Create a `veth` for ne
 <img width="50%" alt="image" src="https://github.com/user-attachments/assets/c70ff6b9-0f09-4021-aea7-78069cdbe194" />
 
 
-Reference docs (clickable):
+Reference docs:
 
-* Visual ACL Tags: [https://login.tailscale.com/admin/acls/visual/tags](https://login.tailscale.com/admin/acls/visual/tags)
+* ManagevACL Tags: [https://login.tailscale.com/admin/acls/visual/tags](https://login.tailscale.com/admin/acls/visual/tags)
 * OAuth Clients: [https://login.tailscale.com/admin/settings/oauth](https://login.tailscale.com/admin/settings/oauth)
 * All container variables: [https://tailscale.com/kb/1282/docker](https://tailscale.com/kb/1282/docker)
 * Image tags: [https://hub.docker.com/r/tailscale/tailscale/tags](https://hub.docker.com/r/tailscale/tailscale/tags)
-
 
 ---
