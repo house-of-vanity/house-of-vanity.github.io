@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             WireGuard over udp2raw
+            
+        </title>
+
+        
+            <meta property="og:title" content="WireGuard over udp2raw" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="Running WireGuard over udp2raw" />
+        
+    
+
+    
+        
+            <meta name="description" content="Running WireGuard over udp2raw" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">WireGuard over udp2raw</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2024-10-25
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <h1 id="running-wireguard-over-udp2raw">Running WireGuard over udp2raw</h1>
+<h2 id="introduction">Introduction</h2>
+<p>In certain network environments, establishing a direct WireGuard connection may be challenging due to firewalls, NAT restrictions, or ISPs blocking UDP traffic. <strong>udp2raw</strong> provides a solution by encapsulating WireGuard's UDP traffic into encrypted packets that mimic TCP or ICMP protocols. This method helps bypass UDP blocking and can make your VPN connection appear as regular TCP or ICMP traffic. Method described is almost the same as <a href="/posts/stunnel-tls/">TLS tunnel using stunnel</a> but faster in my tests and works with UDP as well as with TCP.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li><strong>Server</strong>: A remote server with root access where WireGuard is installed and configured.</li>
+<li><strong>Client</strong>: A local machine with root access where WireGuard is installed and configured.</li>
+<li><strong>udp2raw</strong>: Downloaded on both the server and client from the <a href="https://github.com/wangyu-/udp2raw/releases">udp2raw releases page</a>.</li>
+<li><strong>A shared secret key</strong>: A plain text string used by udp2raw for authentication (e.g., <code>SecReT-StrinG</code>).</li>
+</ul>
+<h2 id="how-it-works">How It Works</h2>
+<pre style="background-color:#f9f9f9;color:#111111;"><code><span>[WireGuard Client]
+</span><span>    |
+</span><span>    | UDP traffic to 127.0.0.1:6666
+</span><span>    v
+</span><span>+---------------------+
+</span><span>| udp2raw Client      |
+</span><span>| Listening on:       |
+</span><span>| 127.0.0.1:6666      |
+</span><span>| Connecting to:      |
+</span><span>| SERVER_IP:7777      |
+</span><span>+---------------------+
+</span><span>    |
+</span><span>    | Encrypted UDP/TCP/ICMP packets to SERVER_IP:7777
+</span><span>    v
+</span><span>~~~~~~~~~~~~~ Internet ~~~~~~~~~~~~~
+</span><span>    |
+</span><span>    v
+</span><span>+---------------------+
+</span><span>| udp2raw Server      |
+</span><span>| Listening on:       |
+</span><span>| 0.0.0.0:7777        |
+</span><span>| Forwarding to:      |
+</span><span>| 127.0.0.1:51820     |
+</span><span>+---------------------+
+</span><span>    |
+</span><span>    | UDP traffic to 127.0.0.1:51820
+</span><span>    v
+</span><span>[WireGuard Server]
+</span></code></pre>
+<h3 id="data-flow">Data Flow</h3>
+<ol>
+<li><strong>WireGuard Client</strong> sends UDP packets to <code>127.0.0.1:6666</code>, which is the local udp2raw Client.</li>
+<li><strong>udp2raw Client</strong> encapsulates these UDP packets into encrypted UDP/TCP/ICMP packets and sends them over the internet to <code>SERVER_IP:7777</code> (the udp2raw Server).</li>
+<li><strong>udp2raw Server</strong> listens on <code>0.0.0.0:7777</code>, decrypts the incoming packets, and forwards them as UDP packets to <code>127.0.0.1:51820</code> (the WireGuard Server).</li>
+<li><strong>WireGuard Server</strong> processes the packets and sends responses back through the same path in reverse.</li>
+</ol>
+<h2 id="steps">Steps</h2>
+<h3 id="1-download-and-install-udp2raw">1. Download and Install udp2raw</h3>
+<p>On both the <strong>server</strong> and <strong>client</strong>:</p>
+<ol>
+<li>
+<p>Navigate to the <a href="https://github.com/wangyu-/udp2raw/releases">udp2raw releases page</a>.</p>
+</li>
+<li>
+<p>Download the appropriate binary for your system (e.g., <code>udp2raw_amd64</code> for 64-bit Linux).</p>
+</li>
+<li>
+<p>Make the binary executable and move it to a directory in your <code>$PATH</code>:</p>
+<pre data-lang="bash" style="background-color:#f9f9f9;color:#111111;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#c82728;">chmod</span><span style="color:#4271ae;"> +x udp2raw_amd64
+</span><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> mv udp2raw_amd64 /usr/local/bin/
+</span></code></pre>
+</li>
+</ol>
+<h3 id="2-configure-udp2raw-on-the-server">2. Configure udp2raw on the Server</h3>
+<p>Create a systemd service to run udp2raw as a daemon.</p>
+<h4 id="command-explanation">Command Explanation</h4>
+<ul>
+<li><code>-s</code>: Run in server mode.</li>
+<li><code>-l 0.0.0.0:7777</code>: Listen on all interfaces on port <code>7777</code>.</li>
+<li><code>-r 127.0.0.1:51820</code>: Forward packets to <code>127.0.0.1</code> on port <code>51820</code> (WireGuard listens here).</li>
+<li><code>-k &lt;PLAIN_TEXT_SECRET&gt;</code>: Use the provided key for authentication.</li>
+<li><code>--raw-mode udp</code>: Use UDP mode for raw sockets.</li>
+<li><code>-a</code>: Auto-adjust TCP options.</li>
+</ul>
+<h4 id="create-systemd-service">Create Systemd Service</h4>
+<p>Create a file <code>/etc/systemd/system/udp2raw.service</code> with the following content:</p>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8959a8;">[Unit]
+</span><span style="color:#f07219;">Description</span><span style="color:#3e999f;">=</span><span>udp2raw Server
+</span><span style="color:#f07219;">After</span><span style="color:#3e999f;">=</span><span>network</span><span style="color:#3e999f;">.</span><span>target
+</span><span>
+</span><span style="color:#8959a8;">[Service]
+</span><span style="color:#f07219;">ExecStart</span><span style="color:#3e999f;">=/</span><span>usr</span><span style="color:#3e999f;">/</span><span>local</span><span style="color:#3e999f;">/</span><span>bin</span><span style="color:#3e999f;">/</span><span>udp2raw_amd64 </span><span style="color:#3e999f;">-</span><span>s </span><span style="color:#3e999f;">-</span><span>l 0.0.0.0:7777 </span><span style="color:#3e999f;">-</span><span>r 127.0.0.1:51820 </span><span style="color:#3e999f;">-</span><span>k SecReT</span><span style="color:#3e999f;">-</span><span>StrinG </span><span style="color:#3e999f;">--</span><span>raw</span><span style="color:#3e999f;">-</span><span>mode udp </span><span style="color:#3e999f;">-</span><span>a
+</span><span style="color:#f07219;">Restart</span><span style="color:#3e999f;">=</span><span>always
+</span><span style="color:#f07219;">User</span><span style="color:#3e999f;">=</span><span>root
+</span><span style="color:#f07219;">RestartSec</span><span style="color:#3e999f;">=</span><span style="color:#f07219;">3
+</span><span>
+</span><span style="color:#8959a8;">[Install]
+</span><span style="color:#f07219;">WantedBy</span><span style="color:#3e999f;">=</span><span>multi</span><span style="color:#3e999f;">-</span><span>user</span><span style="color:#3e999f;">.</span><span>target
+</span></code></pre>
+<h4 id="start-the-service">Start the Service</h4>
+<pre data-lang="bash" style="background-color:#f9f9f9;color:#111111;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> systemctl enable</span><span style="color:#f07219;"> --now</span><span style="color:#4271ae;"> udp2raw
+</span></code></pre>
+<h3 id="3-configure-udp2raw-on-the-client">3. Configure udp2raw on the Client</h3>
+<h4 id="command-explanation-1">Command Explanation</h4>
+<ul>
+<li><code>-c</code>: Run in client mode.</li>
+<li><code>-l 127.0.0.1:6666</code>: Listen on local address <code>127.0.0.1</code> on port <code>6666</code> (WireGuard will connect here).</li>
+<li><code>-r SERVER_IP:7777</code>: Connect to the udp2raw server at <code>SERVER_IP</code> on port <code>7777</code>.</li>
+<li><code>-k &lt;PLAIN_TEXT_SECRET&gt;</code>: Use the same key as the server for authentication.</li>
+<li><code>--raw-mode udp</code>: Use UDP mode for raw sockets.</li>
+<li><code>-a</code>: Auto-adjust TCP options.</li>
+</ul>
+<h4 id="create-systemd-service-1">Create Systemd Service</h4>
+<p>Replace <code>SERVER_IP</code> with your server's IP address.</p>
+<p>Create a file <code>/etc/systemd/system/udp2raw.service</code> with the following content:</p>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8959a8;">[Unit]
+</span><span style="color:#f07219;">Description</span><span style="color:#3e999f;">=</span><span>udp2raw Client
+</span><span style="color:#f07219;">After</span><span style="color:#3e999f;">=</span><span>network</span><span style="color:#3e999f;">.</span><span>target
+</span><span>
+</span><span style="color:#8959a8;">[Service]
+</span><span style="color:#f07219;">ExecStart</span><span style="color:#3e999f;">=/</span><span>usr</span><span style="color:#3e999f;">/</span><span>local</span><span style="color:#3e999f;">/</span><span>bin</span><span style="color:#3e999f;">/</span><span>udp2raw_amd64 </span><span style="color:#3e999f;">-</span><span>c </span><span style="color:#3e999f;">-</span><span>l 127.0.0.1:6666 </span><span style="color:#3e999f;">-</span><span>r </span><span style="color:#f07219;">SERVER_IP</span><span style="color:#3e999f;">:</span><span style="color:#f07219;">7777 </span><span style="color:#3e999f;">-</span><span>k SecReT</span><span style="color:#3e999f;">-</span><span>StrinG </span><span style="color:#3e999f;">--</span><span>raw</span><span style="color:#3e999f;">-</span><span>mode udp </span><span style="color:#3e999f;">-</span><span>a
+</span><span style="color:#f07219;">Restart</span><span style="color:#3e999f;">=</span><span>always
+</span><span style="color:#f07219;">User</span><span style="color:#3e999f;">=</span><span>root
+</span><span style="color:#f07219;">RestartSec</span><span style="color:#3e999f;">=</span><span style="color:#f07219;">3
+</span><span>
+</span><span style="color:#8959a8;">[Install]
+</span><span style="color:#f07219;">WantedBy</span><span style="color:#3e999f;">=</span><span>multi</span><span style="color:#3e999f;">-</span><span>user</span><span style="color:#3e999f;">.</span><span>target
+</span></code></pre>
+<h4 id="start-the-service-1">Start the Service</h4>
+<pre data-lang="bash" style="background-color:#f9f9f9;color:#111111;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#c82728;">sudo</span><span style="color:#4271ae;"> systemctl enable</span><span style="color:#f07219;"> --now</span><span style="color:#4271ae;"> udp2raw
+</span></code></pre>
+<h3 id="4-configure-wireguard-to-use-udp2raw">4. Configure WireGuard to Use udp2raw</h3>
+<p>On the <strong>client</strong>, modify your WireGuard configuration to connect to the local udp2raw port.</p>
+<h4 id="example-wireguard-client-configuration">Example WireGuard Client Configuration</h4>
+<pre data-lang="ini" style="background-color:#f9f9f9;color:#111111;" class="language-ini "><code class="language-ini" data-lang="ini"><span style="color:#8959a8;">[Interface]
+</span><span style="color:#f07219;">PrivateKey </span><span style="color:#3e999f;">= &lt;</span><span>Client_Private_Key</span><span style="color:#3e999f;">&gt;
+</span><span style="color:#f07219;">Address </span><span style="color:#3e999f;">= </span><span>10.0.0.2/32
+</span><span style="color:#f07219;">DNS </span><span style="color:#3e999f;">= </span><span>8.8.8.8
+</span><span>
+</span><span style="color:#8959a8;">[Peer]
+</span><span style="color:#f07219;">PublicKey </span><span style="color:#3e999f;">= &lt;</span><span>Server_Public_Key</span><span style="color:#3e999f;">&gt;
+</span><span style="color:#f07219;">Endpoint </span><span style="color:#3e999f;">= </span><span>127.0.0.1:6666
+</span><span style="color:#f07219;">AllowedIPs </span><span style="color:#3e999f;">= </span><span>0.0.0.0/0
+</span><span style="color:#f07219;">PersistentKeepalive </span><span style="color:#3e999f;">= </span><span style="color:#f07219;">25
+</span></code></pre>
+<ul>
+<li><strong>Endpoint</strong>: Set to <code>127.0.0.1:6666</code>, the local udp2raw client's listening address.</li>
+<li><strong>AllowedIPs</strong>: Set to <code>0.0.0.0/0</code> to route all traffic through the VPN, or specify desired subnets.</li>
+</ul>
+<h2 id="conclusion">Conclusion</h2>
+<p>By wrapping WireGuard traffic with udp2raw, you can bypass network restrictions that prevent standard UDP traffic. This setup encapsulates your VPN traffic in a way that appears as regular TCP, UDP or ICMP packets, enhancing connectivity in restrictive environments.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://github.com/wangyu-/udp2raw">udp2raw GitHub Repository</a></li>
+<li><a href="https://www.wireguard.com/">WireGuard Official Website</a></li>
+</ul>
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/vpn/>vpn</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/wireguard/>wireguard</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2025 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 763aeb5 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

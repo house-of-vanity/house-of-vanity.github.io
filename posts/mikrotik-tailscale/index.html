@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             Tailscale on Mikrotik containers
+            
+        </title>
+
+        
+            <meta property="og:title" content="Tailscale on Mikrotik containers" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="Easy way to connect Mikrotik and its networks to Tailscale network" />
+        
+    
+
+    
+        
+            <meta name="description" content="Easy way to connect Mikrotik and its networks to Tailscale network" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">Tailscale on Mikrotik containers</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2025-10-03
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <hr />
+<h2 id="create-a-tag-in-tailscale">Create a tag in Tailscale</h2>
+<p>Open <strong>Visual ACLs → Tags</strong> and create a tag (e.g. <code>tag:mikrotik-lms</code>). We’ll assign this tag via container args so your ACLs/policies apply to the node.</p>
+<ul>
+<li>Visual ACL Tags: <a href="https://login.tailscale.com/admin/acls/visual/tags">https://login.tailscale.com/admin/acls/visual/tags</a></li>
+</ul>
+<hr />
+<h2 id="create-an-oauth-client-auth-keys-scope">Create an OAuth client (auth_keys scope)</h2>
+<p>Create an OAuth client with the <strong><code>auth_keys</code></strong> scope. You’ll use the <strong>client secret</strong> to mint <em>auth keys</em> via API (do <strong>not</strong> put the OAuth secret directly into the container).</p>
+<ul>
+<li>OAuth Clients: <a href="https://login.tailscale.com/admin/settings/oauth">https://login.tailscale.com/admin/settings/oauth</a></li>
+</ul>
+<hr />
+<h2 id="storage-on-usb1-container-root-state">Storage on <code>usb1</code> (container root + state)</h2>
+<p>Put both the container’s root storage and Tailscale state on <code>usb1</code> to avoid filling the internal flash.</p>
+<pre data-lang="bash" style="background-color:#f9f9f9;color:#111111;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#8e908c;"># Point RouterOS container system to usb1 for all image/layer data.
+</span><span style="color:#c82728;">/container/config/set</span><span style="color:#4271ae;"> root-dir=/usb1/container tmpdir=/usb1/container/tmp
+</span><span style="color:#c82728;">/file/make-dir</span><span style="color:#4271ae;"> usb1/container/tmp
+</span><span>
+</span><span style="color:#8e908c;"># Create a persistent state dir for Tailscale on usb1.
+</span><span style="color:#c82728;">/file/make-dir</span><span style="color:#4271ae;"> usb1/tailscale-state
+</span></code></pre>
+<blockquote>
+<p>Make sure <code>usb1</code> is mounted and has enough free space. The destination path of the mount <strong>must match</strong> <code>TS_STATE_DIR</code> (<code>/var/lib/tailscale</code>).</p>
+</blockquote>
+<hr />
+<h2 id="environment-variables-routeros-env-list">Environment variables (RouterOS env list)</h2>
+<p>Required: <code>TS_AUTHKEY</code>, <code>TS_STATE_DIR</code>, and <code>--advertise-tags</code> matching your ACL tag. Optional vars go after.</p>
+<pre data-lang="bash" style="background-color:#f9f9f9;color:#111111;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#8e908c;"># --- REQUIRED ---
+</span><span style="color:#c82728;">/container/envs/add</span><span style="color:#4271ae;"> name=TAILSCALE_VARS key=TS_AUTHKEY   value=</span><span style="color:#839c00;">&quot;tskey-REPLACE_ME&quot; </span><span style="color:#4271ae;">\
+</span><span style="color:#4271ae;">  comment=</span><span style="color:#839c00;">&quot;Headless auth key; do not use the raw OAuth secret&quot;
+</span><span>
+</span><span style="color:#c82728;">/container/envs/add</span><span style="color:#4271ae;"> name=TAILSCALE_VARS key=TS_STATE_DIR value=</span><span style="color:#839c00;">&quot;/var/lib/tailscale&quot; </span><span style="color:#4271ae;">\
+</span><span style="color:#4271ae;">  comment=</span><span style="color:#839c00;">&quot;Persistent state dir inside container; must match the bind mount dst&quot;
+</span><span>
+</span><span style="color:#c82728;">/container/envs/add</span><span style="color:#4271ae;"> name=TAILSCALE_VARS key=TS_EXTRA_ARGS \
+</span><span style="color:#4271ae;">  value=</span><span style="color:#839c00;">&quot;--advertise-tags=tag:mikrotik-lms&quot; </span><span style="color:#4271ae;">\
+</span><span style="color:#4271ae;">  comment=</span><span style="color:#839c00;">&quot;Attach the policy tag so ACLs apply&quot;
+</span><span>
+</span><span style="color:#8e908c;"># --- OPTIONAL ---
+</span><span style="color:#c82728;">/container/envs/add</span><span style="color:#4271ae;"> name=TAILSCALE_VARS key=TS_ROUTES        value=</span><span style="color:#839c00;">&quot;10.0.5.0/24&quot; </span><span style="color:#4271ae;">\
+</span><span style="color:#4271ae;">  comment=</span><span style="color:#839c00;">&quot;Advertise routed subnet(s) if acting as a subnet router&quot;
+</span><span>
+</span><span style="color:#c82728;">/container/envs/add</span><span style="color:#4271ae;"> name=TAILSCALE_VARS key=TS_ENABLE_METRICS value=</span><span style="color:#839c00;">&quot;true&quot; </span><span style="color:#4271ae;">\
+</span><span style="color:#4271ae;">  comment=</span><span style="color:#839c00;">&quot;Expose /debug/metrics for Prometheus&quot;
+</span><span>
+</span><span style="color:#c82728;">/container/envs/add</span><span style="color:#4271ae;"> name=TAILSCALE_VARS key=TS_ACCEPT_DNS     value=</span><span style="color:#839c00;">&quot;true&quot; </span><span style="color:#4271ae;">\
+</span><span style="color:#4271ae;">  comment=</span><span style="color:#839c00;">&quot;Accept MagicDNS/control-plane DNS&quot;
+</span><span>
+</span><span style="color:#c82728;">/container/envs/add</span><span style="color:#4271ae;"> name=TAILSCALE_VARS key=TS_USERSPACE      value=</span><span style="color:#839c00;">&quot;false&quot; </span><span style="color:#4271ae;">\
+</span><span style="color:#4271ae;">  comment=</span><span style="color:#839c00;">&quot;Kernel mode if TUN available; set true to force userspace&quot;
+</span></code></pre>
+<hr />
+<h2 id="create-the-mount-and-veth-then-the-container-pinned-image">Create the mount and veth, then the container (pinned image)</h2>
+<p>Mount from <code>usb1</code> to <strong>the same path</strong> as <code>TS_STATE_DIR</code>. Create a <code>veth</code> for networking. Pin the image tag (don’t use <code>latest</code>).</p>
+<pre data-lang="bash" style="background-color:#f9f9f9;color:#111111;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#8e908c;"># --- MOUNT ON usb1 (matches TS_STATE_DIR) ---
+</span><span style="color:#c82728;">/container/mounts/add</span><span style="color:#4271ae;"> name=TS_state src=/usb1/tailscale-state dst=/var/lib/tailscale
+</span><span>
+</span><span style="color:#8e908c;"># --- VETH FOR CONTAINER NETWORKING ---
+</span><span style="color:#c82728;">/interface/veth/add</span><span style="color:#4271ae;"> name=veth-tailscaled address=172.31.0.2/24 gateway=172.31.0.1
+</span><span style="color:#c82728;">/ip/address/add</span><span style="color:#4271ae;"> address=172.31.0.1/24 interface=veth-tailscaled
+</span><span>
+</span><span style="color:#8e908c;"># --- CONTAINER (PINNED VERSION) ---
+</span><span style="color:#8e908c;"># Replace tag with a current one from Docker Hub.
+</span><span style="color:#c82728;">/container/add</span><span style="color:#4271ae;"> name=tailscaled \
+</span><span style="color:#4271ae;">  remote-image=tailscale/tailscale:v1.76.0 \
+</span><span style="color:#4271ae;">  envlist=TAILSCALE_VARS \
+</span><span style="color:#4271ae;">  mounts=TS_state \
+</span><span style="color:#4271ae;">  interfaces=veth-tailscaled \
+</span><span style="color:#4271ae;">  start-on-boot=yes
+</span><span>
+</span><span style="color:#c82728;">/container/start</span><span style="color:#4271ae;"> tailscaled
+</span></code></pre>
+<img width="50%" alt="image" src="https://github.com/user-attachments/assets/c70ff6b9-0f09-4021-aea7-78069cdbe194" />
+<p>Reference docs:</p>
+<ul>
+<li>ManagevACL Tags: <a href="https://login.tailscale.com/admin/acls/visual/tags">https://login.tailscale.com/admin/acls/visual/tags</a></li>
+<li>OAuth Clients: <a href="https://login.tailscale.com/admin/settings/oauth">https://login.tailscale.com/admin/settings/oauth</a></li>
+<li>All container variables: <a href="https://tailscale.com/kb/1282/docker">https://tailscale.com/kb/1282/docker</a></li>
+<li>Image tags: <a href="https://hub.docker.com/r/tailscale/tailscale/tags">https://hub.docker.com/r/tailscale/tailscale/tags</a></li>
+</ul>
+<hr />
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/tools/>tools</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/networking/>networking</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/containers/>containers</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2025 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 763aeb5 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>

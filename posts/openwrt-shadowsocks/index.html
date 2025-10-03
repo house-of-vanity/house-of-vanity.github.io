@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    
+        <title>
+             Shadowsocks on OpenWRT
+            
+        </title>
+
+        
+            <meta property="og:title" content="Shadowsocks on OpenWRT" />
+        
+    
+
+    
+        
+            <meta property="og:description" content="Setup shadowsocks on OpenWRT for all clients" />
+        
+    
+
+    
+        
+            <meta name="description" content="Setup shadowsocks on OpenWRT for all clients" />
+        
+    
+
+    
+         <link rel="icon" type="image/png" href=&#x2F;icon&#x2F;favicon.png />
+    
+
+    
+
+    
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZQB83ET6VX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-ZQB83ET6VX');
+        </script>
+    
+
+    
+    
+        <script src=//btwiusearch.net/js/feather.min.js></script>
+    
+
+
+    
+        <link href=//btwiusearch.net/css/fonts.css rel="stylesheet" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=//btwiusearch.net/css/main.css />
+
+    
+        <link
+            rel="stylesheet"
+            id="darkModeStyle"
+            type="text/css"
+            href=//btwiusearch.net/css/dark.css
+            
+            
+                disabled
+            
+        />
+    
+
+
+    
+
+
+</head>
+
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main" id="main_title">
+        <a href=&#x2F;&#x2F;btwiusearch.net>btwiusearch.net</a>
+    </div>
+
+    <nav>
+        
+            <a href=&#x2F;>Home</a>
+        
+            <a href=&#x2F;posts>All posts</a>
+        
+            <a href=&#x2F;about>About</a>
+        
+            <a href=&#x2F;tags>Tags</a>
+        
+            <a href=&#x2F;arch_repo&#x2F;>Private Arch Linux repo</a>
+        
+
+        
+            |
+
+            
+                <a href=&#x2F;>en</a>
+            
+        
+
+        
+            | <a id="dark-mode-toggle" onclick="toggleTheme()" href=""></a>
+            <script src=//btwiusearch.net/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+    
+<main>
+    <article>
+        <div class="title">
+            <h1 class="title">Shadowsocks on OpenWRT</h1>
+            <div class="meta">
+                
+                    Published by <a href="https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity" target="_blank">@ultradesu</a>
+                
+                on  2025-06-16
+
+                
+            </div>
+        </div>
+
+        
+
+        <section class="body">
+            <h1 id="shadowsocks-libev-openwrt-hardware-switch-on-gl-inet">Shadowsocks-libev + OpenWRT + Hardware Switch on GL.iNet</h1>
+<h2 id="1-install-packages">1. Install packages</h2>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">opkg</span><span style="color:#4271ae;"> update
+</span><span style="color:#c82728;">opkg</span><span style="color:#4271ae;"> install \
+</span><span style="color:#4271ae;">  luci-app-shadowsocks-libev \
+</span><span style="color:#4271ae;">  shadowsocks-libev-ss-redir \
+</span><span style="color:#4271ae;">  shadowsocks-libev-config
+</span></code></pre>
+<hr />
+<h2 id="2-add-server-redir-instance">2. Add server + redir instance</h2>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">SERVER_NAME</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">&#39;Bulgaria&#39;
+</span><span style="color:#c82728;">SERVER_ADDRESS</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">&#39;1.1.1.1&#39;
+</span><span style="color:#c82728;">SERVER_PORT</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">38583
+</span><span style="color:#c82728;">SERVER_PROTO</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">&#39;chacha20-ietf-poly1305&#39;
+</span><span style="color:#c82728;">SERVER_PASS</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">&#39;YoUr_pASS&#39;
+</span><span style="color:#c82728;">LOCAL_PORT</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">12345
+</span><span>
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.$</span><span style="color:#c82728;">SERVER_NAME</span><span style="color:#4271ae;">=server
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.$</span><span style="color:#c82728;">SERVER_NAME</span><span style="color:#4271ae;">.server=</span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">SERVER_ADDRESS</span><span style="color:#839c00;">&quot;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.$</span><span style="color:#c82728;">SERVER_NAME</span><span style="color:#4271ae;">.server_port=</span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">SERVER_PORT</span><span style="color:#839c00;">&quot;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.$</span><span style="color:#c82728;">SERVER_NAME</span><span style="color:#4271ae;">.method=</span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">SERVER_PROTO</span><span style="color:#839c00;">&quot;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.$</span><span style="color:#c82728;">SERVER_NAME</span><span style="color:#4271ae;">.password=</span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">SERVER_PASS</span><span style="color:#839c00;">&quot;
+</span><span>
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.VPN_redir=ss_redir
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.VPN_redir.disabled=</span><span style="color:#839c00;">&#39;0&#39;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.VPN_redir.mode=</span><span style="color:#839c00;">&#39;tcp_and_udp&#39;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.VPN_redir.fast_open=</span><span style="color:#839c00;">&#39;1&#39;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.VPN_redir.no_delay=</span><span style="color:#839c00;">&#39;1&#39;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.VPN_redir.reuse_port=</span><span style="color:#839c00;">&#39;1&#39;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.VPN_redir.server=</span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">SERVER_NAME</span><span style="color:#839c00;">&quot;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set shadowsocks-libev.VPN_redir.local_port=</span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">LOCAL_PORT</span><span style="color:#839c00;">&quot;
+</span></code></pre>
+<hr />
+<h2 id="3-enable-switch">3. Enable switch</h2>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> set switch-button.@main</span><span style="color:#8959a8;">[</span><span style="color:#4271ae;">0</span><span style="color:#8959a8;">]</span><span style="color:#4271ae;">.func=</span><span style="color:#839c00;">&#39;shadowsocks&#39;
+</span><span style="color:#c82728;">uci</span><span style="color:#4271ae;"> commit
+</span></code></pre>
+<p>Create <code>/etc/gl-switch.d/shadowsocks.sh</code>:</p>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#8e908c;">#!/bin/sh
+</span><span style="color:#c82728;">action</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">$</span><span style="color:#c82728;">1
+</span><span style="color:#c82728;">port</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">12345
+</span><span style="color:#c82728;">chain</span><span style="color:#3e999f;">=</span><span style="color:#839c00;">SHADOWSOCKS
+</span><span>
+</span><span style="color:#8959a8;">if </span><span style="color:#4271ae;">[ </span><span style="color:#839c00;">&quot;$</span><span style="color:#c82728;">action</span><span style="color:#839c00;">&quot; </span><span style="color:#3e999f;">= </span><span style="color:#839c00;">&quot;on&quot; </span><span style="color:#4271ae;">]</span><span style="color:#3e999f;">; </span><span style="color:#8959a8;">then
+</span><span>    </span><span style="color:#8e908c;"># Start ss-redir service
+</span><span>    </span><span style="color:#c82728;">/etc/init.d/shadowsocks-libev</span><span style="color:#4271ae;"> start
+</span><span>
+</span><span>    </span><span style="color:#8e908c;"># Add iptables rules
+</span><span>    </span><span style="color:#c82728;">iptables</span><span style="color:#f07219;"> -t</span><span style="color:#4271ae;"> nat</span><span style="color:#f07219;"> -N </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">chain </span><span style="color:#f07219;">2</span><span style="color:#3e999f;">&gt;</span><span style="color:#4271ae;">/dev/null
+</span><span>    </span><span style="color:#c82728;">iptables</span><span style="color:#f07219;"> -t</span><span style="color:#4271ae;"> nat</span><span style="color:#f07219;"> -F </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">chain
+</span><span>    </span><span style="color:#c82728;">iptables</span><span style="color:#f07219;"> -t</span><span style="color:#4271ae;"> nat</span><span style="color:#f07219;"> -A </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">chain</span><span style="color:#f07219;"> -d</span><span style="color:#4271ae;"> 192.168.0.0/16</span><span style="color:#f07219;"> -j</span><span style="color:#4271ae;"> RETURN
+</span><span>    </span><span style="color:#c82728;">iptables</span><span style="color:#f07219;"> -t</span><span style="color:#4271ae;"> nat</span><span style="color:#f07219;"> -A </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">chain</span><span style="color:#f07219;"> -p</span><span style="color:#4271ae;"> tcp</span><span style="color:#f07219;"> -j</span><span style="color:#4271ae;"> REDIRECT</span><span style="color:#f07219;"> --to-ports </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">port
+</span><span>    </span><span style="color:#c82728;">iptables</span><span style="color:#f07219;"> -t</span><span style="color:#4271ae;"> nat</span><span style="color:#f07219;"> -A</span><span style="color:#4271ae;"> PREROUTING</span><span style="color:#f07219;"> -i</span><span style="color:#4271ae;"> br-lan</span><span style="color:#f07219;"> -p</span><span style="color:#4271ae;"> tcp</span><span style="color:#f07219;"> -j </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">chain
+</span><span>
+</span><span>    </span><span style="color:#8e908c;"># Drop existing connections
+</span><span>    </span><span style="color:#c82728;">conntrack</span><span style="color:#f07219;"> -F
+</span><span style="color:#8959a8;">else
+</span><span>    </span><span style="color:#8e908c;"># Delete iptables rules
+</span><span>    </span><span style="color:#c82728;">iptables</span><span style="color:#f07219;"> -t</span><span style="color:#4271ae;"> nat</span><span style="color:#f07219;"> -D</span><span style="color:#4271ae;"> PREROUTING</span><span style="color:#f07219;"> -i</span><span style="color:#4271ae;"> br-lan</span><span style="color:#f07219;"> -p</span><span style="color:#4271ae;"> tcp</span><span style="color:#f07219;"> -j </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">chain
+</span><span>    </span><span style="color:#c82728;">iptables</span><span style="color:#f07219;"> -t</span><span style="color:#4271ae;"> nat</span><span style="color:#f07219;"> -F </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">chain
+</span><span>    </span><span style="color:#c82728;">iptables</span><span style="color:#f07219;"> -t</span><span style="color:#4271ae;"> nat</span><span style="color:#f07219;"> -X </span><span style="color:#4271ae;">$</span><span style="color:#c82728;">chain
+</span><span>
+</span><span>    </span><span style="color:#8e908c;"># Stop ss-redir service
+</span><span>    </span><span style="color:#c82728;">/etc/init.d/shadowsocks-libev</span><span style="color:#4271ae;"> stop
+</span><span style="color:#8959a8;">fi
+</span></code></pre>
+<pre data-lang="sh" style="background-color:#f9f9f9;color:#111111;" class="language-sh "><code class="language-sh" data-lang="sh"><span style="color:#c82728;">chmod</span><span style="color:#4271ae;"> +x /etc/gl-switch.d/shadowsocks.sh
+</span></code></pre>
+<p>Now you can enable Shadowsocks VPN using hardware switch on router. Also it's possible to start and stop VPN by running <code>/etc/gl-switch.d/shadowsocks.sh on/off</code></p>
+
+        </section>
+
+        
+            <div class="post-tags">
+                <nav class="nav tags">
+                    <ul class="tags">
+                        
+                            <li><a href=//btwiusearch.net/tags/linux/>linux</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/networking/>networking</a></li>
+                        
+                            <li><a href=//btwiusearch.net/tags/openwrt/>openwrt</a></li>
+                        
+                    </ul>
+                </nav>
+            </div>
+        
+
+    </article>
+</main>
+
+
+
+        <footer>
+  <div style="display:flex">
+    
+        <a class="soc" href=https:&#x2F;&#x2F;github.com&#x2F;house-of-vanity title=GitHub>
+            <i data-feather=github></i>
+        </a>
+    
+        <a class="soc" href=tg:@ultradesu title=Telegram>
+            <i data-feather=send></i>
+        </a>
+    
+        <a class="soc" href=https:&#x2F;&#x2F;www.linkedin.com&#x2F;in&#x2F;alexandr-bogomyakov-732a8a73 title=LinkedIn>
+            <i data-feather=linkedin></i>
+        </a>
+    
+        <a class="soc" href=mailto:ab@hexor.cy title=E-Mail>
+            <i data-feather=at-sign></i>
+        </a>
+    
+  </div>
+  <div class="footer-info">ver. 2.6 |
+	  2025 © ultradesu |Powered by <a href="https://github.com/getzola/zola">Zola</a> and <a
+      href="https://github.com/XXXMrG/archie-zola">Archie-Zola Theme</a>
+	  
+      <div style="display:flex">Git tag 763aeb5 </div>
+  </div>
+</footer>
+
+
+<script>
+    feather.replace();
+</script>
+
+
+    </div>
+</body>
+
+</html>
